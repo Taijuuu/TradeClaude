@@ -12,10 +12,10 @@ interface DailyBarChartProps {
 }
 
 export function DailyBarChart({ data }: DailyBarChartProps) {
-  const formatted = data.map(d => ({
-    ...d,
-    dateLabel: format(new Date(d.date), 'dd/MM'),
-  }))
+  const isEmpty = data.length === 0
+  const formatted = isEmpty
+    ? [{ dateLabel: '', dailyPnl: 0, cumPnl: 0, date: '' }]
+    : data.map(d => ({ ...d, dateLabel: format(new Date(d.date), 'dd/MM') }))
 
   return (
     <div className="rounded-lg p-4"
@@ -24,34 +24,43 @@ export function DailyBarChart({ data }: DailyBarChartProps) {
         Daily P&L
       </span>
       <div className="h-40 relative">
-        {data.length === 0 ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              Aucun trade fermé
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={formatted} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d3148" />
+            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+            <YAxis
+              stroke="#94a3b8"
+              tick={{ fontSize: 10 }}
+              tickFormatter={v => `$${v}`}
+              width={50}
+              domain={isEmpty ? [-100, 100] : ['auto', 'auto']}
+            />
+            <Tooltip
+              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}
+              formatter={(v, name) => [
+                formatCurrency(v as number),
+                name === 'dailyPnl' ? 'Daily' : 'Cumulative',
+              ]}
+            />
+            <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="4 4" />
+            {!isEmpty && (
+              <>
+                <Bar dataKey="dailyPnl" radius={[2, 2, 0, 0]}>
+                  {formatted.map((d, i) => (
+                    <Cell key={i} fill={d.dailyPnl >= 0 ? '#22c55e' : '#ef4444'} />
+                  ))}
+                </Bar>
+                <Line type="monotone" dataKey="cumPnl" stroke="#7c3aed" strokeWidth={2} dot={false} />
+              </>
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+        {isEmpty && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+              Ajoutez un trade pour voir les barres
             </span>
           </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={formatted} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2d3148" />
-              <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-              <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} tickFormatter={v => `$${v}`} width={50} />
-              <Tooltip
-                contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}
-                formatter={(v, name) => [
-                  formatCurrency(v as number),
-                  name === 'dailyPnl' ? 'Daily' : 'Cumulative',
-                ]}
-              />
-              <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="4 4" />
-              <Bar dataKey="dailyPnl" radius={[2, 2, 0, 0]}>
-                {formatted.map((d, i) => (
-                  <Cell key={i} fill={d.dailyPnl >= 0 ? '#22c55e' : '#ef4444'} />
-                ))}
-              </Bar>
-              <Line type="monotone" dataKey="cumPnl" stroke="#7c3aed" strokeWidth={2} dot={false} />
-            </ComposedChart>
-          </ResponsiveContainer>
         )}
       </div>
     </div>

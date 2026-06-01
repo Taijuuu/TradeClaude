@@ -70,20 +70,18 @@ export default function DashboardPage() {
           {/* Net P&L */}
           <StatCard
             label="Net P&L"
-            value={s ? formatCurrency(netPnl) : '—'}
-            sub={s ? `${closedTrades} trades fermés` : 'Aucun trade'}
+            value={formatCurrency(netPnl)}
+            sub={`${closedTrades} trade${closedTrades !== 1 ? 's' : ''} fermé${closedTrades !== 1 ? 's' : ''}`}
             positive={netPnl > 0 ? true : netPnl < 0 ? false : null}
           />
 
           {/* Profit Factor */}
           <StatCard
             label="Profit Factor"
-            value={s && closedTrades > 0
-              ? (profitFactor === Infinity ? '∞' : profitFactor.toFixed(2))
-              : '—'}
-            sub={s && closedTrades > 0
+            value={closedTrades > 0 ? (profitFactor === Infinity ? '∞' : profitFactor.toFixed(2)) : '0.00'}
+            sub={closedTrades > 0
               ? `Avg win: ${formatCurrency(avgWin)}  |  Avg loss: ${formatCurrency(Math.abs(avgLoss))}`
-              : 'Aucun trade fermé'}
+              : 'Avg win: $0.00  |  Avg loss: $0.00'}
             positive={profitFactor >= 1.5 ? true : profitFactor > 0 && profitFactor < 1 ? false : null}
           />
 
@@ -105,7 +103,7 @@ export default function DashboardPage() {
           {/* Expectancy */}
           <StatCard
             label="Trade Expectancy"
-            value={s && closedTrades > 0 ? formatCurrency(expectancy) : '—'}
+            value={formatCurrency(expectancy)}
             sub="Par trade fermé"
             positive={expectancy > 0 ? true : expectancy < 0 ? false : null}
           />
