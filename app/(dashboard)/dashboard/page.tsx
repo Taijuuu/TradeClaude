@@ -1,123 +1,196 @@
 'use client'
-import { useState, useEffect } from 'react'
 import { useFiltersStore } from '@/store/filtersStore'
 import { useStats } from '@/hooks/useStats'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { WinRateDonut } from '@/components/dashboard/WinRateDonut'
-import { CurrentStreak } from '@/components/dashboard/CurrentStreak'
-import { PerformanceRadar } from '@/components/dashboard/PerformanceRadar'
-import { PnlAreaChart } from '@/components/dashboard/PnlAreaChart'
-import { DailyBarChart } from '@/components/dashboard/DailyBarChart'
+import { useTrades } from '@/hooks/useTrades'
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget'
 import { formatCurrency } from '@/lib/utils'
-import type { EquityPoint } from '@/types'
+import { Badge } from '@/components/ui/badge'
 
 export default function DashboardPage() {
   const { dateFrom, dateTo, accountIds, displayMode } = useFiltersStore()
   const accountId = accountIds[0]
 
   const { stats } = useStats({ dateFrom, dateTo, accountId })
-  const [equity, setEquity] = useState<EquityPoint[]>([])
+  const { trades } = useTrades({ dateFrom, dateTo, accountId }, 15)
 
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (dateFrom) params.set('dateFrom', dateFrom)
-    if (dateTo) params.set('dateTo', dateTo)
-    if (accountId) params.set('accountId', accountId)
-    fetch(`/api/stats/equity?${params}`)
-      .then(r => r.json())
-      .then(d => setEquity(Array.isArray(d.data) ? d.data : []))
-      .catch(() => setEquity([]))
-  }, [dateFrom, dateTo, accountId])
+  const closedTrades  = stats?.closedTrades  ?? 0
+  const openTrades    = stats?.openTrades    ?? 0
+  const netPnl        = stats?.netPnl        ?? 0
+  const grossPnl      = stats?.grossPnl      ?? 0
+  const winRate       = stats?.winRate       ?? 0
+  const profitFactor  = stats?.profitFactor  ?? 0
+  const expectancy    = stats?.expectancy    ?? 0
+  const avgWin        = stats?.avgWin        ?? 0
+  const avgLoss       = stats?.avgLoss       ?? 0
 
-  // Always compute safe values — never hide widgets
-  const s = stats
-  const closedTrades = s?.closedTrades ?? 0
-  const wins = s ? Math.round((s.winRate ?? 0) * closedTrades) : 0
+  const wins   = Math.round(winRate * closedTrades)
   const losses = closedTrades - wins
-  const netPnl = s?.netPnl ?? 0
-  const profitFactor = s?.profitFactor ?? 0
-  const winRate = s?.winRate ?? 0
-  const avgWin = s?.avgWin ?? 0
-  const avgLoss = s?.avgLoss ?? 0
-  const expectancy = s?.expectancy ?? 0
-  const avgRMultiple = s?.avgRMultiple ?? 0
-  const performanceScore = s?.performanceScore ?? 0
-  const currentStreak = s?.currentStreak ?? { type: 'none' as const, count: 0 }
-  const consecutiveWins = s?.consecutiveWins ?? 0
-  const consecutiveLosses = s?.consecutiveLosses ?? 0
 
-  const consistency = (consecutiveWins > 0 || consecutiveLosses > 0)
-    ? consecutiveWins / (consecutiveWins + consecutiveLosses)
-    : 0
+  const pfDisplay = profitFactor === Infinity ? '∞' : profitFactor.toFixed(2)
 
   return (
-    <main className="flex-1 overflow-auto p-4">
-      <div className="flex gap-4 min-h-0">
+    <main className="flex-1 overflow-auto p-5 flex flex-col gap-4">
 
-        {/* ── LEFT COLUMN (58%): Calendar + Charts ── */}
-        <div className="flex flex-col gap-3" style={{ width: '58%', flexShrink: 0 }}>
-          <CalendarWidget accountId={accountId} displayMode={displayMode} />
-          <div className="grid grid-cols-2 gap-3">
-            <PnlAreaChart data={equity} />
-            <DailyBarChart data={equity} />
+      {/* ── TOP: 5 stat cards ── */}
+      <div className="grid grid-cols-5 gap-3">
+
+        {/* Net P&L */}
+        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
+            Net P&L
+            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded"
+              style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)' }}>
+              {closedTrades}
+            </span>
+          </p>
+          <p className="text-2xl font-bold" style={{
+            color: netPnl > 0 ? '#22c55e' : netPnl < 0 ? '#ef4444' : 'var(--text-primary)'
+          }}>
+            {formatCurrency(netPnl)}
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            Gross: {formatCurrency(grossPnl)}
+          </p>
+        </div>
+
+        {/* Trade Expectancy */}
+        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Trade Expectancy</p>
+          <p className="text-2xl font-bold" style={{
+            color: expectancy > 0 ? '#22c55e' : expectancy < 0 ? '#ef4444' : 'var(--text-primary)'
+          }}>
+            {formatCurrency(expectancy)}
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Par trade fermé</p>
+        </div>
+
+        {/* Profit Factor */}
+        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Profit Factor</p>
+          <p className="text-2xl font-bold" style={{
+            color: profitFactor >= 1.5 ? '#22c55e' : profitFactor > 0 && profitFactor < 1 ? '#ef4444' : 'var(--text-primary)'
+          }}>
+            {pfDisplay}
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            Avg win: {formatCurrency(avgWin)}
+          </p>
+        </div>
+
+        {/* Win Rate */}
+        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Win %</p>
+          <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {(winRate * 100).toFixed(1)}%
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            <span style={{ color: '#22c55e' }}>{wins}W</span>
+            {' / '}
+            <span style={{ color: '#ef4444' }}>{losses}L</span>
+          </p>
+        </div>
+
+        {/* Avg Win / Avg Loss */}
+        <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Avg Win / Avg Loss</p>
+          <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {closedTrades > 0 && avgLoss !== 0
+              ? Math.abs(avgWin / avgLoss).toFixed(1)
+              : '—'}
+          </p>
+          <div className="flex gap-2 mt-1">
+            <span className="text-xs" style={{ color: '#22c55e' }}>{formatCurrency(avgWin)}</span>
+            <span className="text-xs" style={{ color: '#ef4444' }}>{formatCurrency(avgLoss)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BOTTOM: Recent trades + Calendar ── */}
+      <div className="flex gap-4 flex-1 min-h-0">
+
+        {/* Left: Recent trades */}
+        <div className="flex-1 flex flex-col min-w-0 rounded-lg overflow-hidden"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+
+          {/* Tabs header */}
+          <div className="flex items-center border-b px-4 pt-3 gap-4"
+            style={{ borderColor: 'var(--border)' }}>
+            <span className="text-sm font-semibold pb-2 border-b-2 border-[var(--accent)]"
+              style={{ color: 'var(--text-primary)' }}>
+              Open Positions
+            </span>
+            <span className="text-sm pb-2" style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
+              Recent Trades
+            </span>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-auto flex-1">
+            {trades.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 gap-2">
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucun trade</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  Clique sur &quot;+ Add Trade&quot; dans la sidebar
+                </span>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                    {['Date', 'Symbole', 'Side', 'Entrée', 'Sortie', 'Net P&L', 'R'].map(h => (
+                      <th key={h} className="text-left px-4 py-2 text-xs font-medium"
+                        style={{ color: 'var(--text-muted)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {trades.map(trade => (
+                    <tr key={trade.id} className="border-b hover:bg-[var(--bg-hover)] transition-colors"
+                      style={{ borderColor: 'var(--border)' }}>
+                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {new Date(trade.entry_date).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {trade.symbol}
+                      </td>
+                      <td className="px-4 py-2 text-xs">
+                        <Badge style={{
+                          background: trade.side === 'long' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: trade.side === 'long' ? '#22c55e' : '#ef4444',
+                          border: 'none', fontSize: 10,
+                        }}>
+                          {trade.side.toUpperCase()}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {trade.entry_price}
+                      </td>
+                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {trade.exit_price ?? '—'}
+                      </td>
+                      <td className="px-4 py-2 text-xs font-bold" style={{
+                        color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444'
+                      }}>
+                        {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
+                      </td>
+                      <td className="px-4 py-2 text-xs font-medium" style={{
+                        color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444'
+                      }}>
+                        {trade.r_multiple != null
+                          ? `${trade.r_multiple >= 0 ? '+' : ''}${trade.r_multiple.toFixed(2)}R`
+                          : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN (42%): Stat widgets ── */}
-        <div className="flex flex-col gap-3 flex-1 min-w-0">
-
-          {/* Net P&L */}
-          <StatCard
-            label="Net P&L"
-            value={formatCurrency(netPnl)}
-            sub={`${closedTrades} trade${closedTrades !== 1 ? 's' : ''} fermé${closedTrades !== 1 ? 's' : ''}`}
-            positive={netPnl > 0 ? true : netPnl < 0 ? false : null}
-          />
-
-          {/* Profit Factor */}
-          <StatCard
-            label="Profit Factor"
-            value={closedTrades > 0 ? (profitFactor === Infinity ? '∞' : profitFactor.toFixed(2)) : '0.00'}
-            sub={closedTrades > 0
-              ? `Avg win: ${formatCurrency(avgWin)}  |  Avg loss: ${formatCurrency(Math.abs(avgLoss))}`
-              : 'Avg win: $0.00  |  Avg loss: $0.00'}
-            positive={profitFactor >= 1.5 ? true : profitFactor > 0 && profitFactor < 1 ? false : null}
-          />
-
-          {/* Win Rate by Trades */}
-          <WinRateDonut
-            winRate={winRate}
-            wins={wins}
-            losses={losses}
-            label="Win % by Trades"
-          />
-
-          {/* Current Streak */}
-          <CurrentStreak
-            streak={currentStreak}
-            consecutiveWins={consecutiveWins}
-            consecutiveLosses={consecutiveLosses}
-          />
-
-          {/* Expectancy */}
-          <StatCard
-            label="Trade Expectancy"
-            value={formatCurrency(expectancy)}
-            sub="Par trade fermé"
-            positive={expectancy > 0 ? true : expectancy < 0 ? false : null}
-          />
-
-          {/* Performance Radar */}
-          <PerformanceRadar
-            winRate={winRate}
-            profitFactor={profitFactor === Infinity ? 3 : Math.min(Math.max(profitFactor, 0), 3)}
-            expectancy={expectancy}
-            avgRMultiple={avgRMultiple}
-            consistency={consistency}
-            score={performanceScore}
-          />
-
+        {/* Right: Calendar */}
+        <div style={{ width: 420, flexShrink: 0 }}>
+          <CalendarWidget accountId={accountId} displayMode={displayMode} />
         </div>
       </div>
     </main>
