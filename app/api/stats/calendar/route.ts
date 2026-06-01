@@ -37,14 +37,14 @@ export async function GET(request: NextRequest) {
     .lte('trade_date', endDate)
 
   const noteDates = new Set(
-    (notes ?? []).map(n => n.trade_date).filter(Boolean) as string[]
+    (notes ?? []).map((n: { trade_date: string | null }) => n.trade_date).filter(Boolean) as string[]
   )
 
   const { data: settings } = await supabase
     .from('settings')
     .select('breakeven_range')
     .eq('user_id', user.id)
-    .single()
+    .single() as { data: { breakeven_range: number } | null }
 
   const { days, weeklySummaries } = calcCalendarData(
     (trades ?? []) as Trade[],
