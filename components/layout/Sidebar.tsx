@@ -43,6 +43,14 @@ export function Sidebar({ userEmail, onAddTrade }: SidebarProps) {
     router.push('/login')
   }
 
+  function handleAddTrade() {
+    if (onAddTrade) {
+      onAddTrade()
+    } else {
+      router.push('/trades')
+    }
+  }
+
   const displayName = userEmail.split('@')[0]
 
   return (
@@ -76,7 +84,7 @@ export function Sidebar({ userEmail, onAddTrade }: SidebarProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={onAddTrade}
+                onClick={handleAddTrade}
                 className={cn('w-full gap-2', collapsed && 'px-0 justify-center')}
                 style={{ background: 'var(--accent)', color: 'white' }}
               >

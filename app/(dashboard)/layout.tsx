@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
+import { AccountsProvider } from '@/components/layout/AccountsProvider'
+import { DashboardHeader } from '@/components/layout/DashboardHeader'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -13,15 +15,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .select('*')
     .order('created_at')
 
-  // accounts fetched here for use in future Plan 3 dashboard pages
-  void accounts
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar userEmail={user.email ?? ''} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {children}
+    <AccountsProvider accounts={accounts ?? []}>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar userEmail={user.email ?? ''} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <DashboardHeader />
+          {children}
+        </div>
       </div>
-    </div>
+    </AccountsProvider>
   )
 }

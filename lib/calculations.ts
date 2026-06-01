@@ -87,10 +87,12 @@ export function calcPerformanceScore(stats: Pick<
   // Avg R-Multiple: 0-20 pts (≥ 2R = max)
   const rScore = Math.min(Math.max(stats.avgRMultiple / 2, 0) * 20, 20)
 
-  // Consistency: 0-15 pts
-  const ratio = stats.consecutiveWins > 0 && stats.consecutiveLosses > 0
-    ? stats.consecutiveWins / (stats.consecutiveWins + stats.consecutiveLosses)
-    : 0.5
+  // Consistency: 0-15 pts — no losses = perfect, no wins = zero
+  const ratio = stats.consecutiveLosses === 0
+    ? 1
+    : stats.consecutiveWins === 0
+    ? 0
+    : stats.consecutiveWins / (stats.consecutiveWins + stats.consecutiveLosses)
   const consistencyScore = ratio * 15
 
   return Math.min(Math.round(winScore + pfScore + expScore + rScore + consistencyScore), 100)

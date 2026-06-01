@@ -19,23 +19,22 @@ interface FiltersActions {
   reset: () => void
 }
 
-const today = format(new Date(), 'yyyy-MM-dd')
-const firstOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-
-const initialState: FiltersState = {
-  dateFrom: firstOfMonth,
-  dateTo: today,
-  accountIds: [],
-  assetClasses: [],
-  displayMode: 'dollar',
+function getDefaultState(): FiltersState {
+  return {
+    dateFrom: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+    dateTo: format(new Date(), 'yyyy-MM-dd'),
+    accountIds: [],
+    assetClasses: [],
+    displayMode: 'dollar',
+  }
 }
 
 export const useFiltersStore = create<FiltersState & FiltersActions>((set) => ({
-  ...initialState,
+  ...getDefaultState(),
   setDateFrom: (dateFrom) => set({ dateFrom }),
   setDateTo: (dateTo) => set({ dateTo }),
   setAccountIds: (accountIds) => set({ accountIds }),
   setAssetClasses: (assetClasses) => set({ assetClasses }),
   setDisplayMode: (displayMode) => set({ displayMode }),
-  reset: () => set(initialState),
+  reset: () => set(getDefaultState()),
 }))

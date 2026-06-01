@@ -43,6 +43,7 @@ export default function RegisterPage() {
       return
     }
     toast.success('Compte créé ! Connecte-toi.')
+    setLoading(false)
     router.push('/login')
   }
 
