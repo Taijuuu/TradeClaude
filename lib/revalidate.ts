@@ -28,3 +28,10 @@ export function revalidateSettings() {
   revalidatePath('/settings')
   revalidatePath('/', 'layout')
 }
+
+/**
+ * Call after strategy mutations.
+ */
+export function revalidateStrategies() {
+  revalidatePath('/strategies')
+}
