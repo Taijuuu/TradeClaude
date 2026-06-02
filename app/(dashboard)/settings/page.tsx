@@ -33,27 +33,36 @@ export default function SettingsPage() {
     fetch('/api/settings')
       .then(r => r.json())
       .then(d => {
-        if (d.settings) setSettings(d.settings)
+        if (d.settings) {
+          const { user_id: _, ...rest } = d.settings
+          setSettings(rest)
+        }
         setHasApiKey(d.hasApiKey ?? false)
       })
+      .catch(() => toast.error('Impossible de charger les paramètres'))
       .finally(() => setLoading(false))
   }, [])
 
   async function handleSave() {
     setSaving(true)
-    const body: Record<string, unknown> = { ...settings }
-    if (apiKey.trim()) body.anthropic_api_key = apiKey.trim()
-    const res = await fetch('/api/settings', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    setSaving(false)
-    if (res.ok) {
-      toast.success('Paramètres sauvegardés')
-      if (apiKey.trim()) { setHasApiKey(true); setApiKey('') }
-    } else {
-      toast.error('Erreur lors de la sauvegarde')
+    try {
+      const body: Record<string, unknown> = { ...settings }
+      if (apiKey.trim()) body.anthropic_api_key = apiKey.trim()
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        toast.success('Paramètres sauvegardés')
+        if (apiKey.trim()) { setHasApiKey(true); setApiKey('') }
+      } else {
+        toast.error('Erreur lors de la sauvegarde')
+      }
+    } catch {
+      toast.error('Impossible de sauvegarder')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -81,6 +90,7 @@ export default function SettingsPage() {
               value={settings.default_commission}
               onChange={e => setSettings(s => ({ ...s, default_commission: parseFloat(e.target.value) || 0 }))}
               step="0.01"
+              min="0"
               style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
           </div>
@@ -92,6 +102,7 @@ export default function SettingsPage() {
               value={settings.breakeven_range}
               onChange={e => setSettings(s => ({ ...s, breakeven_range: parseFloat(e.target.value) || 0 }))}
               step="0.01"
+              min="0"
               style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
             />
           </div>
