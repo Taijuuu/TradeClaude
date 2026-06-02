@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -48,6 +49,7 @@ export default function NotebookPage() {
   const [editing, setEditing] = useState<NotebookEntry | null>(null)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const loadEntries = useCallback((type?: string) => {
     setLoading(true)
@@ -110,8 +112,10 @@ export default function NotebookPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Supprimer cette entrée ?')) return
+  async function confirmDelete() {
+    if (!pendingDeleteId) return
+    const id = pendingDeleteId
+    setPendingDeleteId(null)
     try {
       const res = await fetch(`/api/notebook/${id}`, { method: 'DELETE' })
       if (res.ok) {
@@ -210,7 +214,7 @@ export default function NotebookPage() {
                   <Pencil size={13} />
                 </button>
                 <button
-                  onClick={() => handleDelete(entry.id)}
+                  onClick={() => setPendingDeleteId(entry.id)}
                   className="p-1 rounded hover:bg-[var(--bg-hover)]"
                   style={{ color: '#ef4444' }}
                 >
@@ -221,6 +225,24 @@ export default function NotebookPage() {
           ))
         )}
       </div>
+
+      {/* Delete confirm */}
+      <Dialog open={!!pendingDeleteId} onOpenChange={open => { if (!open) setPendingDeleteId(null) }}>
+        <DialogContent style={{ background: 'var(--bg-primary)', borderColor: 'var(--border)' }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'var(--text-primary)' }}>Supprimer l'entrée ?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Cette action est irréversible.</p>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setPendingDeleteId(null)} style={{ color: 'var(--text-muted)' }}>
+              Annuler
+            </Button>
+            <Button onClick={confirmDelete} style={{ background: '#ef4444', color: 'white' }}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Drawer */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
