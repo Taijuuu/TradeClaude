@@ -13,7 +13,7 @@ export default function ReportsPage() {
   const { dateFrom, dateTo, accountIds } = useFiltersStore()
   const accountId = accountIds[0]
   const { stats } = useStats({ dateFrom, dateTo, accountId })
-  const { trades } = useTrades({ dateFrom, dateTo, accountId, status: 'closed' }, 500)
+  const { trades, loading } = useTrades({ dateFrom, dateTo, accountId, status: 'closed' }, 500)
 
   // Equity curve: cumulative P&L sorted by exit_date
   const equityCurve = useMemo(() => {
@@ -45,6 +45,14 @@ export default function ReportsPage() {
   const emotionBreakdown = stats?.emotionBreakdown ?? []
 
   const cardStyle = { background: 'var(--bg-card)', border: '1px solid var(--border)' }
+
+  if (loading) {
+    return (
+      <main className="flex-1 overflow-auto p-6 flex items-center justify-center">
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Chargement...</p>
+      </main>
+    )
+  }
 
   if (trades.length === 0) {
     return (

@@ -67,7 +67,7 @@ export default function StrategiesPage() {
       entry_rules: s.entry_rules ?? '',
       exit_rules: s.exit_rules ?? '',
       risk_rules: s.risk_rules ?? '',
-      checklist: (s.checklist as { label: string }[]).map(c => c.label),
+      checklist: Array.isArray(s.checklist) ? (s.checklist as { label: string }[]).map(c => c.label) : [],
     })
     setNewCheckItem('')
     setDrawerOpen(true)
@@ -197,7 +197,7 @@ export default function StrategiesPage() {
                 {s.description && (
                   <p className="text-xs line-clamp-2" style={{ color: 'var(--text-muted)' }}>{s.description}</p>
                 )}
-                {(s.checklist as { label: string }[]).length > 0 && (
+                {Array.isArray(s.checklist) && (s.checklist as { label: string }[]).length > 0 && (
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     {(s.checklist as { label: string }[]).length} règles checklist
                   </p>
