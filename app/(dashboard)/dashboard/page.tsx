@@ -2,7 +2,10 @@
 import { useFiltersStore } from '@/store/filtersStore'
 import { useStats } from '@/hooks/useStats'
 import { useTrades } from '@/hooks/useTrades'
+import { useEquity } from '@/hooks/useEquity'
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget'
+import { PnlAreaChart } from '@/components/dashboard/PnlAreaChart'
+import { ProgressHeatmap } from '@/components/dashboard/ProgressHeatmap'
 import { formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 
@@ -12,6 +15,7 @@ export default function DashboardPage() {
 
   const { stats } = useStats({ dateFrom, dateTo, accountId })
   const { trades } = useTrades({ dateFrom, dateTo, accountId }, 15)
+  const { data: equityData } = useEquity({ dateFrom, dateTo, accountId })
 
   const closedTrades  = stats?.closedTrades  ?? 0
   const openTrades    = stats?.openTrades    ?? 0
@@ -102,6 +106,16 @@ export default function DashboardPage() {
             <span className="text-xs" style={{ color: '#22c55e' }}>{formatCurrency(avgWin)}</span>
             <span className="text-xs" style={{ color: '#ef4444' }}>{formatCurrency(avgLoss)}</span>
           </div>
+        </div>
+      </div>
+
+      {/* ── ROW 2: Progress Heatmap + Cumulative P&L ── */}
+      <div className="flex gap-4">
+        <div className="flex-1 min-w-0">
+          <ProgressHeatmap accountId={accountId} />
+        </div>
+        <div style={{ width: 320, flexShrink: 0 }}>
+          <PnlAreaChart data={equityData} />
         </div>
       </div>
 
