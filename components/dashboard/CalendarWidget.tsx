@@ -64,12 +64,13 @@ function DayCell({ day, displayMode }: { day: CalendarDay; displayMode: DisplayM
   )
 }
 
-function WeekCell({ summary }: { summary: WeeklySummary }) {
+function WeekCell({ summary, weekNumber }: { summary: WeeklySummary; weekNumber: number }) {
   return (
     <div
       className="h-[72px] rounded-md p-1.5 flex flex-col items-center justify-center gap-0.5"
       style={{ background: 'rgba(45,49,72,0.5)' }}
     >
+      <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>Sem. {weekNumber}</span>
       <span
         className="text-[10px] font-semibold"
         style={{ color: summary.totalPnl >= 0 ? '#22c55e' : '#ef4444' }}
@@ -77,7 +78,7 @@ function WeekCell({ summary }: { summary: WeeklySummary }) {
         {summary.totalPnl >= 0 ? '+' : ''}{formatCurrency(summary.totalPnl)}
       </span>
       <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
-        {summary.tradingDays}j
+        {summary.tradingDays} jour{summary.tradingDays > 1 ? 's' : ''}
       </span>
     </div>
   )
@@ -154,6 +155,11 @@ export function CalendarWidget({ accountId, displayMode = 'dollar' }: CalendarWi
   const days: CalendarDay[] = data?.days ?? buildEmptyDays(year, month)
   const weeklySummaries: WeeklySummary[] = data?.weeklySummaries ?? []
 
+  // Monthly stats
+  const tradingDays = days.filter(d => d.nbTrades > 0)
+  const monthlyPnl  = tradingDays.reduce((s, d) => s + d.netPnl, 0)
+  const winDays     = tradingDays.filter(d => d.type === 'win').length
+
   // Split 42 flat day entries into 6 rows of 7
   const rows: CalendarDay[][] = Array.from({ length: 6 }, (_, w) =>
     days.slice(w * 7, w * 7 + 7)
@@ -164,25 +170,42 @@ export function CalendarWidget({ accountId, displayMode = 'dollar' }: CalendarWi
       className="rounded-lg p-4 flex flex-col gap-3"
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
     >
-      {/* Navigation */}
+      {/* Navigation + monthly stats */}
       <div className="flex items-center justify-between">
-        <button
-          onClick={prev}
-          className="p-1 rounded hover:bg-[var(--bg-hover)] transition-colors"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <span className="text-sm font-semibold capitalize" style={{ color: 'var(--text-primary)' }}>
-          {monthLabel}
-        </span>
-        <button
-          onClick={next}
-          className="p-1 rounded hover:bg-[var(--bg-hover)] transition-colors"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          <ChevronRight size={16} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={prev}
+            className="p-1 rounded hover:bg-[var(--bg-hover)] transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span className="text-sm font-semibold capitalize" style={{ color: 'var(--text-primary)' }}>
+            {monthLabel}
+          </span>
+          <button
+            onClick={next}
+            className="p-1 rounded hover:bg-[var(--bg-hover)] transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+        {tradingDays.length > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-medium" style={{ color: monthlyPnl >= 0 ? '#22c55e' : '#ef4444' }}>
+              {monthlyPnl >= 0 ? '+' : ''}{formatCurrency(monthlyPnl)}
+            </span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {tradingDays.length} jour{tradingDays.length > 1 ? 's' : ''}
+            </span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <span style={{ color: '#22c55e' }}>{winDays}W</span>
+              {' / '}
+              <span style={{ color: '#ef4444' }}>{tradingDays.length - winDays}L</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Column headers: 7 days + week summary */}
@@ -208,7 +231,7 @@ export function CalendarWidget({ accountId, displayMode = 'dollar' }: CalendarWi
                 <DayCell key={dayIndex} day={day} displayMode={displayMode} />
               ))}
               {summary ? (
-                <WeekCell summary={summary} />
+                <WeekCell summary={summary} weekNumber={weekIndex + 1} />
               ) : (
                 <EmptyWeekCell />
               )}

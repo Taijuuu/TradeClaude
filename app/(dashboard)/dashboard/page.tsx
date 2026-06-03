@@ -135,94 +135,62 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── BOTTOM: Recent trades + Calendar ── */}
-      <div className="flex gap-4 flex-1 min-h-0">
-
-        {/* Left: Recent trades */}
-        <div className="flex-1 flex flex-col min-w-0 rounded-lg overflow-hidden"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-
-          {/* Tabs header */}
-          <div className="flex items-center border-b px-4 pt-3 gap-4"
-            style={{ borderColor: 'var(--border)' }}>
-            <span className="text-sm font-semibold pb-2 border-b-2 border-[var(--accent)]"
-              style={{ color: 'var(--text-primary)' }}>
-              Open Positions
-            </span>
-            <span className="text-sm pb-2" style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Recent Trades
-            </span>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-auto flex-1">
-            {trades.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 gap-2">
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucun trade</span>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Clique sur &quot;+ Add Trade&quot; dans la sidebar
-                </span>
-              </div>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Date', 'Symbole', 'Side', 'Entrée', 'Sortie', 'Net P&L', 'R'].map(h => (
-                      <th key={h} className="text-left px-4 py-2 text-xs font-medium"
-                        style={{ color: 'var(--text-muted)' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {trades.map(trade => (
-                    <tr key={trade.id} className="border-b hover:bg-[var(--bg-hover)] transition-colors"
-                      style={{ borderColor: 'var(--border)' }}>
-                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {new Date(trade.entry_date).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {trade.symbol}
-                      </td>
-                      <td className="px-4 py-2 text-xs">
-                        <Badge style={{
-                          background: trade.side === 'long' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                          color: trade.side === 'long' ? '#22c55e' : '#ef4444',
-                          border: 'none', fontSize: 10,
-                        }}>
-                          {trade.side.toUpperCase()}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {trade.entry_price}
-                      </td>
-                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {trade.exit_price ?? '—'}
-                      </td>
-                      <td className="px-4 py-2 text-xs font-bold" style={{
-                        color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444'
-                      }}>
-                        {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
-                      </td>
-                      <td className="px-4 py-2 text-xs font-medium" style={{
-                        color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444'
-                      }}>
-                        {trade.r_multiple != null
-                          ? `${trade.r_multiple >= 0 ? '+' : ''}${trade.r_multiple.toFixed(2)}R`
-                          : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+      {/* ── ROW 4: Recent trades (full width) ── */}
+      <div className="rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center border-b px-4 pt-3 gap-4" style={{ borderColor: 'var(--border)' }}>
+          <span className="text-sm font-semibold pb-2 border-b-2 border-[var(--accent)]" style={{ color: 'var(--text-primary)' }}>
+            Trades récents
+          </span>
         </div>
-
-        {/* Right: Calendar */}
-        <div style={{ width: 420, flexShrink: 0 }}>
-          <CalendarWidget accountId={accountId} displayMode={displayMode} />
+        <div className="overflow-auto" style={{ maxHeight: 220 }}>
+          {trades.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-24 gap-2">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucun trade</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Clique sur &quot;+ Add Trade&quot; dans la sidebar</span>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {['Date', 'Symbole', 'Side', 'Entrée', 'Sortie', 'Net P&L', 'R'].map(h => (
+                    <th key={h} className="text-left px-4 py-2 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {trades.map(trade => (
+                  <tr key={trade.id} className="border-b hover:bg-[var(--bg-hover)] transition-colors" style={{ borderColor: 'var(--border)' }}>
+                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {new Date(trade.entry_date).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{trade.symbol}</td>
+                    <td className="px-4 py-2 text-xs">
+                      <Badge style={{
+                        background: trade.side === 'long' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                        color: trade.side === 'long' ? '#22c55e' : '#ef4444',
+                        border: 'none', fontSize: 10,
+                      }}>
+                        {trade.side.toUpperCase()}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>{trade.entry_price}</td>
+                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>{trade.exit_price ?? '—'}</td>
+                    <td className="px-4 py-2 text-xs font-bold" style={{ color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+                      {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
+                    </td>
+                    <td className="px-4 py-2 text-xs font-medium" style={{ color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+                      {trade.r_multiple != null ? `${trade.r_multiple >= 0 ? '+' : ''}${trade.r_multiple.toFixed(2)}R` : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
+
+      {/* ── ROW 5: Calendar pleine largeur ── */}
+      <CalendarWidget accountId={accountId} displayMode={displayMode} />
     </main>
   )
 }
