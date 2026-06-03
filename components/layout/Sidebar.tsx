@@ -14,6 +14,7 @@ import { cn, getInitials } from '@/lib/utils'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const NAV_ITEMS = [
   { href: '/dashboard',    icon: BarChart2,     label: 'Dashboard' },
@@ -122,6 +123,16 @@ export function Sidebar({ userEmail, onAddTrade }: SidebarProps) {
             )
           })}
         </nav>
+
+        {/* Theme toggle */}
+        <div className={cn('px-2 py-1', collapsed && 'flex justify-center')}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <ThemeToggle />
+            </TooltipTrigger>
+            {collapsed && <TooltipContent side="right">Changer de thème</TooltipContent>}
+          </Tooltip>
+        </div>
 
         {/* User */}
         <div className="p-2 border-t" style={{ borderColor: 'var(--border)' }}>
