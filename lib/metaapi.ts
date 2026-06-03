@@ -32,6 +32,7 @@ export async function createMetaApiAccount(
       server,
       platform: 'mt5',
       magic: 0,
+      reliability: 'regular',
     }),
   })
   if (!res.ok) {
