@@ -60,7 +60,12 @@ export default function LoginPage() {
             {errors.email && <p className="text-xs text-red-400">{errors.email.message}</p>}
           </div>
           <div className="space-y-1">
-            <Label style={{ color: 'var(--text-muted)' }}>Mot de passe</Label>
+            <div className="flex items-center justify-between">
+              <Label style={{ color: 'var(--text-muted)' }}>Mot de passe</Label>
+              <Link href="/forgot-password" className="text-xs" style={{ color: 'var(--accent-light)' }}>
+                Mot de passe oublié ?
+              </Link>
+            </div>
             <Input
               type="password"
               placeholder="••••••••"
