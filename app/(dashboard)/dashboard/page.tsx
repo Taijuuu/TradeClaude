@@ -3,12 +3,15 @@ import { useFiltersStore } from '@/store/filtersStore'
 import { useStats } from '@/hooks/useStats'
 import { useTrades } from '@/hooks/useTrades'
 import { useEquity } from '@/hooks/useEquity'
+import { useScatter } from '@/hooks/useScatter'
 import { useAccounts } from '@/components/layout/AccountsProvider'
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget'
 import { PnlAreaChart } from '@/components/dashboard/PnlAreaChart'
 import { DailyBarChart } from '@/components/dashboard/DailyBarChart'
 import { AccountBalanceChart } from '@/components/dashboard/AccountBalanceChart'
 import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
+import { TradeTimeChart } from '@/components/dashboard/TradeTimeChart'
+import { TradeDurationChart } from '@/components/dashboard/TradeDurationChart'
 import { ProgressHeatmap } from '@/components/dashboard/ProgressHeatmap'
 import { formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -21,6 +24,7 @@ export default function DashboardPage() {
   const { stats } = useStats({ dateFrom, dateTo, accountId })
   const { trades } = useTrades({ dateFrom, dateTo, accountId }, 15)
   const { data: equityData } = useEquity({ dateFrom, dateTo, accountId })
+  const { points: scatterPoints } = useScatter({ dateFrom, dateTo, accountId })
 
   const initialBalance = accounts.find(a => a.id === accountId)?.balance ?? accounts[0]?.balance ?? 0
 
@@ -193,8 +197,12 @@ export default function DashboardPage() {
       {/* ── ROW 5: Calendar pleine largeur ── */}
       <CalendarWidget accountId={accountId} displayMode={displayMode} />
 
-      {/* ── ROW 6: Drawdown ── */}
-      <DrawdownChart data={equityData} initialBalance={initialBalance} />
+      {/* ── ROW 6: Drawdown + Trade Time + Trade Duration ── */}
+      <div className="grid grid-cols-3 gap-4">
+        <DrawdownChart data={equityData} initialBalance={initialBalance} />
+        <TradeTimeChart points={scatterPoints} />
+        <TradeDurationChart points={scatterPoints} />
+      </div>
     </main>
   )
 }
