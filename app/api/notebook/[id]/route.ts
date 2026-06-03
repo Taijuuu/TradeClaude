@@ -13,14 +13,15 @@ export async function PUT(
   const body = await request.json()
   const { title, content, type, trade_date } = body
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('notebook_entries')
     .update({
       title,
       content,
       type,
       trade_date: trade_date || null,
-    } as any)
+    })
     .eq('id', id)
     .eq('user_id', user.id)
     .select()

@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Le titre est requis' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('notebook_entries')
     .insert([{
       user_id: user.id,
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       content,
       type,
       trade_date: trade_date || null,
-    }] as any)
+    }])
     .select()
     .single()
 

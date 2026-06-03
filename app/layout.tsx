@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className="dark" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
-        <Toaster theme="dark" position="bottom-right" richColors />
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   )

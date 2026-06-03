@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'name is required' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('strategies')
     .insert({ user_id: user.id, name, description: description || null, asset_class: asset_class || null, entry_rules: entry_rules || null, exit_rules: exit_rules || null, risk_rules: risk_rules || null, checklist })
     .select()

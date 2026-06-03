@@ -2,7 +2,17 @@
 import { useFiltersStore } from '@/store/filtersStore'
 import { useStats } from '@/hooks/useStats'
 import { useTrades } from '@/hooks/useTrades'
+import { useEquity } from '@/hooks/useEquity'
+import { useScatter } from '@/hooks/useScatter'
+import { useAccounts } from '@/components/layout/AccountsProvider'
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget'
+import { PnlAreaChart } from '@/components/dashboard/PnlAreaChart'
+import { DailyBarChart } from '@/components/dashboard/DailyBarChart'
+import { AccountBalanceChart } from '@/components/dashboard/AccountBalanceChart'
+import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
+import { TradeTimeChart } from '@/components/dashboard/TradeTimeChart'
+import { TradeDurationChart } from '@/components/dashboard/TradeDurationChart'
+import { ProgressHeatmap } from '@/components/dashboard/ProgressHeatmap'
 import { formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 
@@ -10,8 +20,13 @@ export default function DashboardPage() {
   const { dateFrom, dateTo, accountIds, displayMode } = useFiltersStore()
   const accountId = accountIds[0]
 
+  const accounts = useAccounts()
   const { stats } = useStats({ dateFrom, dateTo, accountId })
   const { trades } = useTrades({ dateFrom, dateTo, accountId }, 15)
+  const { data: equityData } = useEquity({ dateFrom, dateTo, accountId })
+  const { points: scatterPoints } = useScatter({ dateFrom, dateTo, accountId })
+
+  const initialBalance = accounts.find(a => a.id === accountId)?.balance ?? accounts[0]?.balance ?? 0
 
   const closedTrades  = stats?.closedTrades  ?? 0
   const openTrades    = stats?.openTrades    ?? 0
@@ -105,93 +120,88 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── BOTTOM: Recent trades + Calendar ── */}
-      <div className="flex gap-4 flex-1 min-h-0">
+      {/* ── ROW 2: Progress Heatmap + Cumulative P&L ── */}
+      <div className="flex gap-4">
+        <div className="flex-1 min-w-0">
+          <ProgressHeatmap accountId={accountId} />
+        </div>
+        <div style={{ width: 320, flexShrink: 0 }}>
+          <PnlAreaChart data={equityData} />
+        </div>
+      </div>
 
-        {/* Left: Recent trades */}
-        <div className="flex-1 flex flex-col min-w-0 rounded-lg overflow-hidden"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      {/* ── ROW 3: Daily P&L bars + Account Balance ── */}
+      <div className="flex gap-4">
+        <div className="flex-1 min-w-0">
+          <DailyBarChart data={equityData} />
+        </div>
+        <div style={{ width: 320, flexShrink: 0 }}>
+          <AccountBalanceChart data={equityData} initialBalance={initialBalance} />
+        </div>
+      </div>
 
-          {/* Tabs header */}
-          <div className="flex items-center border-b px-4 pt-3 gap-4"
-            style={{ borderColor: 'var(--border)' }}>
-            <span className="text-sm font-semibold pb-2 border-b-2 border-[var(--accent)]"
-              style={{ color: 'var(--text-primary)' }}>
-              Open Positions
-            </span>
-            <span className="text-sm pb-2" style={{ color: 'var(--text-muted)', cursor: 'pointer' }}>
-              Recent Trades
-            </span>
-          </div>
-
-          {/* Table */}
-          <div className="overflow-auto flex-1">
-            {trades.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 gap-2">
-                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucun trade</span>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  Clique sur &quot;+ Add Trade&quot; dans la sidebar
-                </span>
-              </div>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                    {['Date', 'Symbole', 'Side', 'Entrée', 'Sortie', 'Net P&L', 'R'].map(h => (
-                      <th key={h} className="text-left px-4 py-2 text-xs font-medium"
-                        style={{ color: 'var(--text-muted)' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {trades.map(trade => (
-                    <tr key={trade.id} className="border-b hover:bg-[var(--bg-hover)] transition-colors"
-                      style={{ borderColor: 'var(--border)' }}>
-                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {new Date(trade.entry_date).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {trade.symbol}
-                      </td>
-                      <td className="px-4 py-2 text-xs">
-                        <Badge style={{
-                          background: trade.side === 'long' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                          color: trade.side === 'long' ? '#22c55e' : '#ef4444',
-                          border: 'none', fontSize: 10,
-                        }}>
-                          {trade.side.toUpperCase()}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {trade.entry_price}
-                      </td>
-                      <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {trade.exit_price ?? '—'}
-                      </td>
-                      <td className="px-4 py-2 text-xs font-bold" style={{
-                        color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444'
-                      }}>
-                        {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
-                      </td>
-                      <td className="px-4 py-2 text-xs font-medium" style={{
-                        color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444'
-                      }}>
-                        {trade.r_multiple != null
-                          ? `${trade.r_multiple >= 0 ? '+' : ''}${trade.r_multiple.toFixed(2)}R`
-                          : '—'}
-                      </td>
-                    </tr>
+      {/* ── ROW 4: Recent trades (full width) ── */}
+      <div className="rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center border-b px-4 pt-3 gap-4" style={{ borderColor: 'var(--border)' }}>
+          <span className="text-sm font-semibold pb-2 border-b-2 border-[var(--accent)]" style={{ color: 'var(--text-primary)' }}>
+            Trades récents
+          </span>
+        </div>
+        <div className="overflow-auto" style={{ maxHeight: 220 }}>
+          {trades.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-24 gap-2">
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Aucun trade</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Clique sur &quot;+ Add Trade&quot; dans la sidebar</span>
+            </div>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {['Date', 'Symbole', 'Side', 'Entrée', 'Sortie', 'Net P&L', 'R'].map(h => (
+                    <th key={h} className="text-left px-4 py-2 text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{h}</th>
                   ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                </tr>
+              </thead>
+              <tbody>
+                {trades.map(trade => (
+                  <tr key={trade.id} className="border-b hover:bg-[var(--bg-hover)] transition-colors" style={{ borderColor: 'var(--border)' }}>
+                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {new Date(trade.entry_date).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="px-4 py-2 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{trade.symbol}</td>
+                    <td className="px-4 py-2 text-xs">
+                      <Badge style={{
+                        background: trade.side === 'long' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+                        color: trade.side === 'long' ? '#22c55e' : '#ef4444',
+                        border: 'none', fontSize: 10,
+                      }}>
+                        {trade.side.toUpperCase()}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>{trade.entry_price}</td>
+                    <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>{trade.exit_price ?? '—'}</td>
+                    <td className="px-4 py-2 text-xs font-bold" style={{ color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+                      {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
+                    </td>
+                    <td className="px-4 py-2 text-xs font-medium" style={{ color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444' }}>
+                      {trade.r_multiple != null ? `${trade.r_multiple >= 0 ? '+' : ''}${trade.r_multiple.toFixed(2)}R` : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
+      </div>
 
-        {/* Right: Calendar */}
-        <div style={{ width: 420, flexShrink: 0 }}>
-          <CalendarWidget accountId={accountId} displayMode={displayMode} />
-        </div>
+      {/* ── ROW 5: Calendar pleine largeur ── */}
+      <CalendarWidget accountId={accountId} displayMode={displayMode} />
+
+      {/* ── ROW 6: Drawdown + Trade Time + Trade Duration ── */}
+      <div className="grid grid-cols-3 gap-4">
+        <DrawdownChart data={equityData} initialBalance={initialBalance} />
+        <TradeTimeChart points={scatterPoints} />
+        <TradeDurationChart points={scatterPoints} />
       </div>
     </main>
   )
