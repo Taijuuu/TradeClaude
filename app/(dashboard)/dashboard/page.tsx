@@ -3,8 +3,11 @@ import { useFiltersStore } from '@/store/filtersStore'
 import { useStats } from '@/hooks/useStats'
 import { useTrades } from '@/hooks/useTrades'
 import { useEquity } from '@/hooks/useEquity'
+import { useAccounts } from '@/components/layout/AccountsProvider'
 import { CalendarWidget } from '@/components/dashboard/CalendarWidget'
 import { PnlAreaChart } from '@/components/dashboard/PnlAreaChart'
+import { DailyBarChart } from '@/components/dashboard/DailyBarChart'
+import { AccountBalanceChart } from '@/components/dashboard/AccountBalanceChart'
 import { ProgressHeatmap } from '@/components/dashboard/ProgressHeatmap'
 import { formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -13,9 +16,12 @@ export default function DashboardPage() {
   const { dateFrom, dateTo, accountIds, displayMode } = useFiltersStore()
   const accountId = accountIds[0]
 
+  const accounts = useAccounts()
   const { stats } = useStats({ dateFrom, dateTo, accountId })
   const { trades } = useTrades({ dateFrom, dateTo, accountId }, 15)
   const { data: equityData } = useEquity({ dateFrom, dateTo, accountId })
+
+  const initialBalance = accounts.find(a => a.id === accountId)?.balance ?? accounts[0]?.balance ?? 0
 
   const closedTrades  = stats?.closedTrades  ?? 0
   const openTrades    = stats?.openTrades    ?? 0
@@ -116,6 +122,16 @@ export default function DashboardPage() {
         </div>
         <div style={{ width: 320, flexShrink: 0 }}>
           <PnlAreaChart data={equityData} />
+        </div>
+      </div>
+
+      {/* ── ROW 3: Daily P&L bars + Account Balance ── */}
+      <div className="flex gap-4">
+        <div className="flex-1 min-w-0">
+          <DailyBarChart data={equityData} />
+        </div>
+        <div style={{ width: 320, flexShrink: 0 }}>
+          <AccountBalanceChart data={equityData} initialBalance={initialBalance} />
         </div>
       </div>
 
