@@ -8,6 +8,7 @@ import { CalendarWidget } from '@/components/dashboard/CalendarWidget'
 import { PnlAreaChart } from '@/components/dashboard/PnlAreaChart'
 import { DailyBarChart } from '@/components/dashboard/DailyBarChart'
 import { AccountBalanceChart } from '@/components/dashboard/AccountBalanceChart'
+import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
 import { ProgressHeatmap } from '@/components/dashboard/ProgressHeatmap'
 import { formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -191,6 +192,9 @@ export default function DashboardPage() {
 
       {/* ── ROW 5: Calendar pleine largeur ── */}
       <CalendarWidget accountId={accountId} displayMode={displayMode} />
+
+      {/* ── ROW 6: Drawdown ── */}
+      <DrawdownChart data={equityData} initialBalance={initialBalance} />
     </main>
   )
 }
