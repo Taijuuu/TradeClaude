@@ -18,7 +18,8 @@ export async function PUT(
     return Response.json({ error: 'name is required' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any)
     .from('strategies')
     .update({
       name,
@@ -28,7 +29,7 @@ export async function PUT(
       exit_rules: exit_rules || null,
       risk_rules: risk_rules || null,
       checklist: checklist ?? [],
-    } as any)
+    })
     .eq('id', id)
     .eq('user_id', user.id)
     .select()
