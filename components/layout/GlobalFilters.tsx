@@ -1,10 +1,10 @@
 'use client'
 
 import { useFiltersStore } from '@/store/filtersStore'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AddAccountSheet } from '@/components/mt5/AddAccountSheet'
 import type { Account } from '@/types'
 
 interface GlobalFiltersProps {
@@ -65,9 +65,7 @@ export function GlobalFilters({ accounts }: GlobalFiltersProps) {
           <SelectItem value="r_multiple">R Multiple</SelectItem>
         </SelectContent>
       </Select>
-      <Button variant="ghost" size="sm" onClick={reset} style={{ color: 'var(--text-muted)' }}>
-        Reset
-      </Button>
+      <AddAccountSheet />
     </div>
   )
 }
