@@ -19,8 +19,9 @@ export default function ForgotPasswordPage() {
     if (!email.trim()) { toast.error('Saisis ton email'); return }
     setLoading(true)
     const supabase = createClient()
+    const origin = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${origin}/reset-password`,
     })
     setLoading(false)
     if (error) { toast.error(error.message); return }
