@@ -1,12 +1,35 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useFiltersStore } from '@/store/filtersStore'
 import { useTrades } from '@/hooks/useTrades'
 import { TradeTable } from '@/components/trades/TradeTable'
 import { TradeForm } from '@/components/trades/TradeForm'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
+import { toast } from 'sonner'
 import type { Trade } from '@/types'
+
+function useLastSync() {
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null)
+
+  const load = useCallback(() => {
+    fetch('/api/mt5/status')
+      .then(r => r.json())
+      .then(d => setLastSyncAt(d.lastSyncAt ?? null))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => { load() }, [load])
+  return { lastSyncAt, reload: load }
+}
+
+function formatSyncAge(iso: string): string {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (diff < 60) return 'à l\'instant'
+  if (diff < 3600) return `il y a ${Math.floor(diff / 60)} min`
+  if (diff < 86400) return `il y a ${Math.floor(diff / 3600)}h`
+  return `il y a ${Math.floor(diff / 86400)}j`
+}
 
 export default function TradesPage() {
   const { dateFrom, dateTo, accountIds, assetClasses } = useFiltersStore()
@@ -19,6 +42,8 @@ export default function TradesPage() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const { lastSyncAt, reload: reloadStatus } = useLastSync()
 
   function handleEdit(trade: Trade) {
     setEditingTrade(trade)
@@ -28,6 +53,30 @@ export default function TradesPage() {
   function handleClose() {
     setFormOpen(false)
     setEditingTrade(null)
+  }
+
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/mt5/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Sync échouée')
+      } else {
+        const total = (data.inserted ?? 0) + (data.updated ?? 0)
+        toast.success(
+          total === 0
+            ? 'Aucun nouveau trade'
+            : `${data.inserted} importé${data.inserted !== 1 ? 's' : ''}, ${data.updated} mis à jour`
+        )
+        refresh()
+        reloadStatus()
+      }
+    } catch {
+      toast.error('Erreur réseau')
+    } finally {
+      setSyncing(false)
+    }
   }
 
   return (
@@ -40,13 +89,35 @@ export default function TradesPage() {
         <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
           {total} trade{total !== 1 ? 's' : ''}
         </span>
-        <Button
-          size="sm"
-          onClick={() => setFormOpen(true)}
-          style={{ background: 'var(--accent)', color: 'white' }}
-        >
-          <Plus size={14} className="mr-1" /> Add Trade
-        </Button>
+
+        <div className="flex items-center gap-3">
+          {/* MT5 Sync button */}
+          <div className="flex flex-col items-end gap-0.5">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleSync}
+              disabled={syncing}
+              style={{ border: '1px solid var(--border)', color: 'var(--text-muted)' }}
+            >
+              <RefreshCw size={13} className={syncing ? 'animate-spin mr-1' : 'mr-1'} />
+              {syncing ? 'Sync...' : 'Sync MT5'}
+            </Button>
+            {lastSyncAt && (
+              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                {formatSyncAge(lastSyncAt)}
+              </span>
+            )}
+          </div>
+
+          <Button
+            size="sm"
+            onClick={() => setFormOpen(true)}
+            style={{ background: 'var(--accent)', color: 'white' }}
+          >
+            <Plus size={14} className="mr-1" /> Add Trade
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
