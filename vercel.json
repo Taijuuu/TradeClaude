@@ -9,7 +9,7 @@
   "crons": [
     {
       "path": "/api/mt5/sync",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
