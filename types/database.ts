@@ -89,6 +89,8 @@ export interface Database {
           setup_notes: string | null
           mistake_notes: string | null
           screenshots: string[]
+          mt5_deal_id: string | null
+          mt5_position_id: string | null
           created_at: string
           updated_at: string
         }
@@ -136,6 +138,8 @@ export interface Database {
           currency: string
           timezone: string
           display_mode: 'dollar' | 'percentage' | 'r_multiple'
+          last_mt5_sync_at: string | null
+          mt5_account_id: string | null
         }
         Insert: Database['public']['Tables']['settings']['Row']
         Update: Partial<Database['public']['Tables']['settings']['Row']>
