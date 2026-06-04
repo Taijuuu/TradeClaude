@@ -105,18 +105,27 @@ export async function fetchDeals(from: string, to: string): Promise<MetaApiDeal[
   const accountId = process.env.METAAPI_ACCOUNT_ID!
   const url = `${BASE}/users/current/accounts/${accountId}/history-deals/time/${from}/${to}`
 
-  const res = await fetch(url, {
-    headers: { 'auth-token': TOKEN },
-    cache: 'no-store',
-  })
+  let lastError = ''
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 3000 * attempt))
 
-  if (!res.ok) {
+    const res = await fetch(url, {
+      headers: { 'auth-token': TOKEN },
+      cache: 'no-store',
+    })
+
+    if (res.ok) {
+      const deals: MetaApiDeal[] = await res.json()
+      return deals.filter(d => d.type === 'DEAL_TYPE_BUY' || d.type === 'DEAL_TYPE_SELL')
+    }
+
     const text = await res.text()
-    throw new Error(`MetaApi ${res.status}: ${text}`)
+    lastError = `MetaApi ${res.status}: ${text}`
+    // Only retry on 504 (broker not ready yet)
+    if (res.status !== 504) break
   }
 
-  const deals: MetaApiDeal[] = await res.json()
-  return deals.filter(d => d.type === 'DEAL_TYPE_BUY' || d.type === 'DEAL_TYPE_SELL')
+  throw new Error(lastError)
 }
 
 export function groupDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
