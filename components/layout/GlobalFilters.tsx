@@ -61,8 +61,7 @@ export function GlobalFilters({ accounts }: GlobalFiltersProps) {
         </SelectTrigger>
         <SelectContent style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <SelectItem value="dollar">$ Dollar</SelectItem>
-          <SelectItem value="percentage">% Pct</SelectItem>
-          <SelectItem value="r_multiple">R Multiple</SelectItem>
+          <SelectItem value="euro">€ Euro</SelectItem>
         </SelectContent>
       </Select>
       <AddAccountSheet />

@@ -12,7 +12,7 @@ export type Emotion =
   | 'greedy'
   | 'calm'
   | 'anxious'
-export type DisplayMode = 'dollar' | 'percentage' | 'r_multiple'
+export type DisplayMode = 'dollar' | 'euro'
 export type NoteType = 'daily' | 'weekly' | 'plan' | 'recap' | 'custom'
 export type AccountType = 'live' | 'demo' | 'prop'
 export type TagCategory = 'setup' | 'mistake' | 'condition' | 'custom'

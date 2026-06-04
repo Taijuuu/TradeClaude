@@ -8,8 +8,7 @@ import type { CalendarDay, DisplayMode, WeeklySummary } from '@/types'
 const DAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim', 'Sem.']
 
 function formatValue(pnl: number, mode: DisplayMode): string {
-  if (mode === 'r_multiple') return `${pnl >= 0 ? '+' : ''}${(pnl / 100).toFixed(1)}R`
-  if (mode === 'percentage') return `${pnl >= 0 ? '+' : ''}${(pnl / 100).toFixed(1)}%`
+  if (mode === 'euro') return pnl >= 0 ? `+${formatCurrency(pnl, 'EUR')}` : formatCurrency(pnl, 'EUR')
   return pnl >= 0 ? `+${formatCurrency(pnl)}` : formatCurrency(pnl)
 }
 

@@ -1,7 +1,7 @@
 'use client'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer,
+  Tooltip, ReferenceLine, ResponsiveContainer, Dot,
 } from 'recharts'
 import { format } from 'date-fns'
 import { formatCurrency } from '@/lib/utils'
@@ -12,63 +12,82 @@ interface AccountBalanceChartProps {
   initialBalance: number
 }
 
+function smartYFormatter(v: number): string {
+  const abs = Math.abs(v)
+  if (abs >= 1000) return `$${(v / 1000).toFixed(1)}k`
+  return `$${v.toFixed(0)}`
+}
+
 export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChartProps) {
   const isEmpty = data.length === 0
 
   const formatted = isEmpty
-    ? [{ dateLabel: '', balance: initialBalance }]
+    ? [{ dateLabel: '', balance: initialBalance || 0 }]
     : data.map(d => ({
         dateLabel: format(new Date(d.date), 'dd/MM'),
         balance: parseFloat((initialBalance + d.cumPnl).toFixed(2)),
       }))
 
-  const isPositive = !isEmpty && formatted[formatted.length - 1].balance >= initialBalance
+  const lastBalance = isEmpty ? (initialBalance || 0) : formatted[formatted.length - 1].balance
+  const isPositive = lastBalance >= (initialBalance || 0)
+  const color = isPositive ? '#6366f1' : '#ef4444'
+
+  // Domain with padding
+  const vals = formatted.map(d => d.balance)
+  const min = Math.min(...vals)
+  const max = Math.max(...vals)
+  const pad = Math.max(Math.abs(max - min) * 0.25, 50)
+  const domain: [number, number] = [Math.floor(min - pad), Math.ceil(max + pad)]
 
   return (
-    <div
-      className="rounded-lg p-4"
-      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-    >
-      <span className="text-xs font-medium block mb-2" style={{ color: 'var(--text-muted)' }}>
-        Account Balance
-      </span>
+    <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Account Balance</span>
+        {!isEmpty && (
+          <span className="text-xs font-bold" style={{ color }}>{formatCurrency(lastBalance)}</span>
+        )}
+      </div>
       <div className="h-40 relative">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={formatted} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+          <AreaChart data={formatted} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isPositive ? '#6366f1' : '#ef4444'} stopOpacity={0.25} />
-                <stop offset="95%" stopColor={isPositive ? '#6366f1' : '#ef4444'} stopOpacity={0} />
+                <stop offset="5%" stopColor={color} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3148" />
-            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
             <YAxis
               stroke="#94a3b8"
               tick={{ fontSize: 10 }}
-              tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
-              width={44}
-              domain={['auto', 'auto']}
+              tickFormatter={smartYFormatter}
+              width={52}
+              domain={domain}
+              axisLine={false}
+              tickLine={false}
             />
             <Tooltip
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}
+              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
               formatter={(v) => [formatCurrency(v as number), 'Solde']}
             />
+            {initialBalance > 0 && (
+              <ReferenceLine y={initialBalance} stroke="#6b7280" strokeDasharray="4 4" />
+            )}
             <Area
               type="monotone"
               dataKey="balance"
-              stroke={isPositive ? '#6366f1' : '#ef4444'}
+              stroke={color}
               strokeWidth={2}
               fill="url(#balGrad)"
-              dot={false}
+              dot={formatted.length === 1 ? <Dot r={4} fill={color} /> : false}
+              activeDot={{ r: 4 }}
             />
           </AreaChart>
         </ResponsiveContainer>
         {isEmpty && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
-              Aucun trade fermé
-            </span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Aucun trade fermé</span>
           </div>
         )}
       </div>
@@ -77,10 +96,8 @@ export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChar
           <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
             Départ : {formatCurrency(initialBalance)}
           </span>
-          <span className="text-[10px] font-medium" style={{
-            color: formatted[formatted.length - 1].balance >= initialBalance ? '#22c55e' : '#ef4444'
-          }}>
-            Actuel : {formatCurrency(formatted[formatted.length - 1].balance)}
+          <span className="text-[10px] font-medium" style={{ color }}>
+            Actuel : {formatCurrency(lastBalance)}
           </span>
         </div>
       )}

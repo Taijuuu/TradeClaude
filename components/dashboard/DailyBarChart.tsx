@@ -11,11 +11,22 @@ interface DailyBarChartProps {
   data: EquityPoint[]
 }
 
+function yDomain(data: { dailyPnl: number }[]): [number, number] {
+  if (data.length === 0) return [-100, 100]
+  const vals = data.map(d => d.dailyPnl)
+  const min = Math.min(...vals)
+  const max = Math.max(...vals)
+  const pad = Math.max(Math.abs(max - min) * 0.25, Math.abs(min) * 0.15, 50)
+  return [Math.floor(min - pad), Math.ceil(max + pad)]
+}
+
 export function DailyBarChart({ data }: DailyBarChartProps) {
   const isEmpty = data.length === 0
   const formatted = isEmpty
     ? [{ dateLabel: '', dailyPnl: 0, cumPnl: 0, date: '' }]
     : data.map(d => ({ ...d, dateLabel: format(new Date(d.date), 'dd/MM') }))
+
+  const domain = yDomain(isEmpty ? [] : formatted)
 
   return (
     <div className="rounded-lg p-4"
@@ -25,29 +36,31 @@ export function DailyBarChart({ data }: DailyBarChartProps) {
       </span>
       <div className="h-40 relative">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart data={formatted} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3148" />
-            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+          <ComposedChart data={formatted} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
             <YAxis
               stroke="#94a3b8"
               tick={{ fontSize: 10 }}
               tickFormatter={v => `$${v}`}
-              width={50}
-              domain={isEmpty ? [-100, 100] : ['auto', 'auto']}
+              width={52}
+              domain={domain}
+              axisLine={false}
+              tickLine={false}
             />
             <Tooltip
-              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}
+              contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
               formatter={(v, name) => [
                 formatCurrency(v as number),
-                name === 'dailyPnl' ? 'Daily' : 'Cumulative',
+                name === 'dailyPnl' ? 'Daily P&L' : 'Cumul',
               ]}
             />
             <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="4 4" />
             {!isEmpty && (
               <>
-                <Bar dataKey="dailyPnl" radius={[2, 2, 0, 0]}>
+                <Bar dataKey="dailyPnl" maxBarSize={40} radius={[3, 3, 0, 0]}>
                   {formatted.map((d, i) => (
-                    <Cell key={i} fill={d.dailyPnl >= 0 ? '#22c55e' : '#ef4444'} />
+                    <Cell key={i} fill={d.dailyPnl >= 0 ? '#22c55e' : '#ef4444'} fillOpacity={0.85} />
                   ))}
                 </Bar>
                 <Line type="monotone" dataKey="cumPnl" stroke="#7c3aed" strokeWidth={2} dot={false} />
