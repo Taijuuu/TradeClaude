@@ -20,21 +20,30 @@ export async function POST(request: NextRequest) {
       return Response.json({ imported: 0, message: 'Aucun trade trouvé' })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any)
-      .from('trades')
-      .upsert(
-        trades.map(t => ({
-          ...t,
-          user_id:    user.id,
-          account_id: accountId ?? null,
-        })),
-        { onConflict: 'user_id,mt5_deal_id', ignoreDuplicates: true }
-      )
+    let imported = 0
+    for (const trade of trades) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: existing } = await (supabase as any)
+        .from('trades')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('mt5_deal_id', trade.mt5_deal_id)
+        .maybeSingle() as { data: { id: string } | null }
 
-    if (error) return Response.json({ error: error.message }, { status: 500 })
+      if (existing) continue
 
-    return Response.json({ imported: trades.length })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from('trades').insert({
+        ...trade,
+        user_id:    user.id,
+        account_id: accountId ?? null,
+        asset_class: 'forex',
+        screenshots: [],
+      })
+      imported++
+    }
+
+    return Response.json({ imported })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Erreur import'
     return Response.json({ error: msg }, { status: 500 })
