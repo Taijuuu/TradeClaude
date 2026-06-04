@@ -12,10 +12,12 @@ interface AccountBalanceChartProps {
   initialBalance: number
 }
 
-function smartYFormatter(v: number): string {
-  const abs = Math.abs(v)
-  if (abs >= 1000) return `$${(v / 1000).toFixed(1)}k`
-  return `$${v.toFixed(0)}`
+function makeYFormatter(symbol: string) {
+  return (v: number) => {
+    const abs = Math.abs(v)
+    if (abs >= 1000) return `${symbol}${(v / 1000).toFixed(1)}k`
+    return `${symbol}${v.toFixed(0)}`
+  }
 }
 
 export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChartProps) {
@@ -62,7 +64,7 @@ export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChar
             <YAxis
               stroke="#94a3b8"
               tick={{ fontSize: 10 }}
-              tickFormatter={smartYFormatter}
+              tickFormatter={makeYFormatter(fmt.symbol)}
               width={52}
               domain={domain}
               axisLine={false}

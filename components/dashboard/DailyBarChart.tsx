@@ -43,7 +43,7 @@ export function DailyBarChart({ data }: DailyBarChartProps) {
             <YAxis
               stroke="#94a3b8"
               tick={{ fontSize: 10 }}
-              tickFormatter={v => `$${v}`}
+              tickFormatter={v => `${fmt.symbol}${v}`}
               width={52}
               domain={domain}
               axisLine={false}
