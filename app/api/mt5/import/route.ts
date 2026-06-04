@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
           user_id:    user.id,
           account_id: accountId ?? null,
         })),
-        { onConflict: 'mt5_deal_id', ignoreDuplicates: true }
+        { onConflict: 'user_id,mt5_deal_id', ignoreDuplicates: true }
       )
 
     if (error) return Response.json({ error: error.message }, { status: 500 })
