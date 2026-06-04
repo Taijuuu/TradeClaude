@@ -3,7 +3,7 @@ import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ReferenceLine, ResponsiveContainer, Cell,
 } from 'recharts'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import type { ScatterPoint } from '@/hooks/useScatter'
 
 function minutesToLabel(m: number) {
@@ -15,6 +15,7 @@ function minutesToLabel(m: number) {
 interface Props { points: ScatterPoint[] }
 
 export function TradeTimeChart({ points }: Props) {
+  const fmt = useFmt()
   const isEmpty = points.length === 0
 
   return (
@@ -48,7 +49,7 @@ export function TradeTimeChart({ points }: Props) {
               cursor={{ strokeDasharray: '3 3' }}
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}
               formatter={(v, name) => [
-                name === 'netPnl' ? formatCurrency(v as number) : minutesToLabel(v as number),
+                name === 'netPnl' ? fmt(v as number) : minutesToLabel(v as number),
                 name === 'netPnl' ? 'Net P&L' : 'Heure',
               ]}
             />

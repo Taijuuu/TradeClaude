@@ -4,7 +4,7 @@ import {
   Tooltip, ReferenceLine, ResponsiveContainer, Dot,
 } from 'recharts'
 import { format } from 'date-fns'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import type { EquityPoint } from '@/types'
 
 interface PnlAreaChartProps {
@@ -21,6 +21,7 @@ function yDomain(data: { cumPnl: number }[]): [number, number] {
 }
 
 export function PnlAreaChart({ data }: PnlAreaChartProps) {
+  const fmt = useFmt()
   const isEmpty = data.length === 0
   const formatted = isEmpty
     ? [{ dateLabel: '', cumPnl: 0, dailyPnl: 0, date: '' }]
@@ -37,7 +38,7 @@ export function PnlAreaChart({ data }: PnlAreaChartProps) {
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Cumulative Net P&L</span>
         {!isEmpty && (
-          <span className="text-xs font-bold" style={{ color }}>{formatCurrency(lastVal)}</span>
+          <span className="text-xs font-bold" style={{ color }}>{fmt(lastVal)}</span>
         )}
       </div>
       <div className="h-40 relative">
@@ -62,7 +63,7 @@ export function PnlAreaChart({ data }: PnlAreaChartProps) {
             />
             <Tooltip
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
-              formatter={(v) => [formatCurrency(v as number), 'Cum. P&L']}
+              formatter={(v) => [fmt(v as number), 'Cum. P&L']}
             />
             <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="4 4" />
             {!isEmpty && (

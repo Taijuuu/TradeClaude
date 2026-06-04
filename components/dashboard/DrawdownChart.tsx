@@ -4,7 +4,7 @@ import {
   Tooltip, ReferenceLine, ResponsiveContainer,
 } from 'recharts'
 import { format } from 'date-fns'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import type { EquityPoint } from '@/types'
 
 interface DrawdownChartProps {
@@ -13,6 +13,7 @@ interface DrawdownChartProps {
 }
 
 export function DrawdownChart({ data, initialBalance }: DrawdownChartProps) {
+  const fmt = useFmt()
   const isEmpty = data.length === 0
 
   // Compute drawdown at each point
@@ -42,7 +43,7 @@ export function DrawdownChart({ data, initialBalance }: DrawdownChartProps) {
         </span>
         {maxDrawdown < 0 && (
           <span className="text-xs font-semibold" style={{ color: '#ef4444' }}>
-            Max : {formatCurrency(maxDrawdown)}
+            Max : {fmt(maxDrawdown)}
           </span>
         )}
       </div>
@@ -70,7 +71,7 @@ export function DrawdownChart({ data, initialBalance }: DrawdownChartProps) {
             />
             <Tooltip
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}
-              formatter={(v) => [formatCurrency(v as number), 'Drawdown']}
+              formatter={(v) => [fmt(v as number), 'Drawdown']}
             />
             <ReferenceLine y={0} stroke="#6b7280" strokeDasharray="4 4" />
             {!isEmpty && (

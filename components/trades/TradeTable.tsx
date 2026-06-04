@@ -4,7 +4,8 @@ import { toast } from 'sonner'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { cn, formatCurrency, formatR, formatDate } from '@/lib/utils'
+import { cn, formatR, formatDate } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import type { Trade } from '@/types'
 
 interface TradeTableProps {
@@ -15,6 +16,7 @@ interface TradeTableProps {
 }
 
 export function TradeTable({ trades, loading, onEdit, onDeleted }: TradeTableProps) {
+  const fmt = useFmt()
   const [deleting, setDeleting] = useState<string | null>(null)
 
   async function handleDelete(id: string) {
@@ -94,12 +96,12 @@ export function TradeTable({ trades, loading, onEdit, onDeleted }: TradeTablePro
               <td className={cn(td, 'font-medium')} style={{
                 color: (trade.gross_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444',
               }}>
-                {trade.gross_pnl != null ? formatCurrency(trade.gross_pnl) : '—'}
+                {trade.gross_pnl != null ? fmt(trade.gross_pnl) : '—'}
               </td>
               <td className={cn(td, 'font-bold')} style={{
                 color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444',
               }}>
-                {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
+                {trade.net_pnl != null ? fmt(trade.net_pnl) : '—'}
               </td>
               <td className={cn(td, 'font-medium')} style={{
                 color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444',

@@ -1,18 +1,14 @@
 'use client'
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react'
-import { cn, formatCurrency } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import { useCalendar } from '@/hooks/useCalendar'
 import type { CalendarDay, DisplayMode, WeeklySummary } from '@/types'
 
 const DAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim', 'Sem.']
 
-function formatValue(pnl: number, mode: DisplayMode): string {
-  if (mode === 'euro') return pnl >= 0 ? `+${formatCurrency(pnl, 'EUR')}` : formatCurrency(pnl, 'EUR')
-  return pnl >= 0 ? `+${formatCurrency(pnl)}` : formatCurrency(pnl)
-}
-
-function DayCell({ day, displayMode }: { day: CalendarDay; displayMode: DisplayMode }) {
+function DayCell({ day, fmt }: { day: CalendarDay; fmt: (v: number) => string }) {
   const isToday = day.date === new Date().toISOString().slice(0, 10)
 
   if (day.type === 'empty') {
@@ -47,7 +43,7 @@ function DayCell({ day, displayMode }: { day: CalendarDay; displayMode: DisplayM
       {day.nbTrades > 0 ? (
         <>
           <span className="text-[10px] font-semibold leading-tight" style={{ color: textColor }}>
-            {formatValue(day.netPnl, displayMode)}
+            {day.netPnl >= 0 ? `+${fmt(day.netPnl)}` : fmt(day.netPnl)}
           </span>
           <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
             {day.nbTrades} trade{day.nbTrades > 1 ? 's' : ''}
@@ -63,7 +59,7 @@ function DayCell({ day, displayMode }: { day: CalendarDay; displayMode: DisplayM
   )
 }
 
-function WeekCell({ summary, weekNumber }: { summary: WeeklySummary; weekNumber: number }) {
+function WeekCell({ summary, weekNumber, fmt }: { summary: WeeklySummary; weekNumber: number; fmt: (v: number) => string }) {
   return (
     <div
       className="h-[72px] rounded-md p-1.5 flex flex-col items-center justify-center gap-0.5"
@@ -74,7 +70,7 @@ function WeekCell({ summary, weekNumber }: { summary: WeeklySummary; weekNumber:
         className="text-[10px] font-semibold"
         style={{ color: summary.totalPnl >= 0 ? '#22c55e' : '#ef4444' }}
       >
-        {summary.totalPnl >= 0 ? '+' : ''}{formatCurrency(summary.totalPnl)}
+        {summary.totalPnl >= 0 ? '+' : ''}{fmt(summary.totalPnl)}
       </span>
       <span className="text-[9px]" style={{ color: 'var(--text-muted)' }}>
         {summary.tradingDays} jour{summary.tradingDays > 1 ? 's' : ''}
@@ -130,7 +126,8 @@ interface CalendarWidgetProps {
   displayMode?: DisplayMode
 }
 
-export function CalendarWidget({ accountId, displayMode = 'dollar' }: CalendarWidgetProps) {
+export function CalendarWidget({ accountId }: CalendarWidgetProps) {
+  const fmt = useFmt()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -193,7 +190,7 @@ export function CalendarWidget({ accountId, displayMode = 'dollar' }: CalendarWi
         {tradingDays.length > 0 && (
           <div className="flex items-center gap-3">
             <span className="text-xs font-medium" style={{ color: monthlyPnl >= 0 ? '#22c55e' : '#ef4444' }}>
-              {monthlyPnl >= 0 ? '+' : ''}{formatCurrency(monthlyPnl)}
+              {monthlyPnl >= 0 ? '+' : ''}{fmt(monthlyPnl)}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {tradingDays.length} jour{tradingDays.length > 1 ? 's' : ''}
@@ -227,10 +224,10 @@ export function CalendarWidget({ accountId, displayMode = 'dollar' }: CalendarWi
           return (
             <div key={weekIndex} className="grid grid-cols-8 gap-1">
               {rowDays.map((day, dayIndex) => (
-                <DayCell key={dayIndex} day={day} displayMode={displayMode} />
+                <DayCell key={dayIndex} day={day} fmt={fmt} />
               ))}
               {summary ? (
-                <WeekCell summary={summary} weekNumber={weekIndex + 1} />
+                <WeekCell summary={summary} weekNumber={weekIndex + 1} fmt={fmt} />
               ) : (
                 <EmptyWeekCell />
               )}

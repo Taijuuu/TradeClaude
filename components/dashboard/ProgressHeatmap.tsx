@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 
 interface DayData {
   date: string
@@ -26,6 +26,7 @@ const MONTHS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','N
 const DAYS   = ['L','M','M','J','V','S','D']
 
 export function ProgressHeatmap({ accountId }: ProgressHeatmapProps) {
+  const fmt = useFmt()
   const [dayMap, setDayMap] = useState<Map<string, DayData>>(new Map())
   const [tooltip, setTooltip] = useState<{ day: DayData; x: number; y: number } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -176,7 +177,7 @@ export function ProgressHeatmap({ accountId }: ProgressHeatmapProps) {
         >
           <div className="font-medium">{tooltip.day.date}</div>
           <div style={{ color: tooltip.day.netPnl >= 0 ? '#22c55e' : '#ef4444' }}>
-            {formatCurrency(tooltip.day.netPnl)}
+            {fmt(tooltip.day.netPnl)}
           </div>
           <div style={{ color: 'var(--text-muted)' }}>{tooltip.day.tradeCount} trade{tooltip.day.tradeCount > 1 ? 's' : ''}</div>
         </div>

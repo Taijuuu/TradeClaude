@@ -4,7 +4,7 @@ import {
   Tooltip, ReferenceLine, Cell, ResponsiveContainer,
 } from 'recharts'
 import { format } from 'date-fns'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import type { EquityPoint } from '@/types'
 
 interface DailyBarChartProps {
@@ -21,6 +21,7 @@ function yDomain(data: { dailyPnl: number }[]): [number, number] {
 }
 
 export function DailyBarChart({ data }: DailyBarChartProps) {
+  const fmt = useFmt()
   const isEmpty = data.length === 0
   const formatted = isEmpty
     ? [{ dateLabel: '', dailyPnl: 0, cumPnl: 0, date: '' }]
@@ -51,7 +52,7 @@ export function DailyBarChart({ data }: DailyBarChartProps) {
             <Tooltip
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
               formatter={(v, name) => [
-                formatCurrency(v as number),
+                fmt(v as number),
                 name === 'dailyPnl' ? 'Daily P&L' : 'Cumul',
               ]}
             />

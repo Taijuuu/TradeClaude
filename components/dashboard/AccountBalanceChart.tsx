@@ -4,7 +4,7 @@ import {
   Tooltip, ReferenceLine, ResponsiveContainer, Dot,
 } from 'recharts'
 import { format } from 'date-fns'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import type { EquityPoint } from '@/types'
 
 interface AccountBalanceChartProps {
@@ -19,6 +19,7 @@ function smartYFormatter(v: number): string {
 }
 
 export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChartProps) {
+  const fmt = useFmt()
   const isEmpty = data.length === 0
 
   const formatted = isEmpty
@@ -44,7 +45,7 @@ export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChar
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>Account Balance</span>
         {!isEmpty && (
-          <span className="text-xs font-bold" style={{ color }}>{formatCurrency(lastBalance)}</span>
+          <span className="text-xs font-bold" style={{ color }}>{fmt(lastBalance)}</span>
         )}
       </div>
       <div className="h-40 relative">
@@ -69,7 +70,7 @@ export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChar
             />
             <Tooltip
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11 }}
-              formatter={(v) => [formatCurrency(v as number), 'Solde']}
+              formatter={(v) => [fmt(v as number), 'Solde']}
             />
             {initialBalance > 0 && (
               <ReferenceLine y={initialBalance} stroke="#6b7280" strokeDasharray="4 4" />
@@ -94,10 +95,10 @@ export function AccountBalanceChart({ data, initialBalance }: AccountBalanceChar
       {!isEmpty && (
         <div className="flex justify-between mt-2">
           <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-            Départ : {formatCurrency(initialBalance)}
+            Départ : {fmt(initialBalance)}
           </span>
           <span className="text-[10px] font-medium" style={{ color }}>
-            Actuel : {formatCurrency(lastBalance)}
+            Actuel : {fmt(lastBalance)}
           </span>
         </div>
       )}

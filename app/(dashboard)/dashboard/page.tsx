@@ -13,10 +13,11 @@ import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
 import { TradeTimeChart } from '@/components/dashboard/TradeTimeChart'
 import { TradeDurationChart } from '@/components/dashboard/TradeDurationChart'
 import { ProgressHeatmap } from '@/components/dashboard/ProgressHeatmap'
-import { formatCurrency } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { useFmt } from '@/hooks/useFmt'
 
 export default function DashboardPage() {
+  const fmt = useFmt()
   const { dateFrom, dateTo, accountIds, displayMode } = useFiltersStore()
   const accountId = accountIds[0]
 
@@ -61,10 +62,10 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold" style={{
             color: netPnl > 0 ? '#22c55e' : netPnl < 0 ? '#ef4444' : 'var(--text-primary)'
           }}>
-            {formatCurrency(netPnl)}
+            {fmt(netPnl)}
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            Gross: {formatCurrency(grossPnl)}
+            Gross: {fmt(grossPnl)}
           </p>
         </div>
 
@@ -74,7 +75,7 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold" style={{
             color: expectancy > 0 ? '#22c55e' : expectancy < 0 ? '#ef4444' : 'var(--text-primary)'
           }}>
-            {formatCurrency(expectancy)}
+            {fmt(expectancy)}
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Par trade fermé</p>
         </div>
@@ -88,7 +89,7 @@ export default function DashboardPage() {
             {pfDisplay}
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            Avg win: {formatCurrency(avgWin)}
+            Avg win: {fmt(avgWin)}
           </p>
         </div>
 
@@ -114,8 +115,8 @@ export default function DashboardPage() {
               : '—'}
           </p>
           <div className="flex gap-2 mt-1">
-            <span className="text-xs" style={{ color: '#22c55e' }}>{formatCurrency(avgWin)}</span>
-            <span className="text-xs" style={{ color: '#ef4444' }}>{formatCurrency(avgLoss)}</span>
+            <span className="text-xs" style={{ color: '#22c55e' }}>{fmt(avgWin)}</span>
+            <span className="text-xs" style={{ color: '#ef4444' }}>{fmt(avgLoss)}</span>
           </div>
         </div>
       </div>
@@ -181,7 +182,7 @@ export default function DashboardPage() {
                     <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>{trade.entry_price}</td>
                     <td className="px-4 py-2 text-xs" style={{ color: 'var(--text-muted)' }}>{trade.exit_price ?? '—'}</td>
                     <td className="px-4 py-2 text-xs font-bold" style={{ color: (trade.net_pnl ?? 0) >= 0 ? '#22c55e' : '#ef4444' }}>
-                      {trade.net_pnl != null ? formatCurrency(trade.net_pnl) : '—'}
+                      {trade.net_pnl != null ? fmt(trade.net_pnl) : '—'}
                     </td>
                     <td className="px-4 py-2 text-xs font-medium" style={{ color: (trade.r_multiple ?? 0) >= 0 ? '#22c55e' : '#ef4444' }}>
                       {trade.r_multiple != null ? `${trade.r_multiple >= 0 ? '+' : ''}${trade.r_multiple.toFixed(2)}R` : '—'}

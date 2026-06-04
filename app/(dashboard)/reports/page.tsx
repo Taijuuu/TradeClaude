@@ -3,13 +3,14 @@ import { useMemo } from 'react'
 import { useFiltersStore } from '@/store/filtersStore'
 import { useStats } from '@/hooks/useStats'
 import { useTrades } from '@/hooks/useTrades'
-import { formatCurrency } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell,
 } from 'recharts'
 
 export default function ReportsPage() {
+  const fmt = useFmt()
   const { dateFrom, dateTo, accountIds } = useFiltersStore()
   const accountId = accountIds[0]
   const { stats } = useStats({ dateFrom, dateTo, accountId })
@@ -77,7 +78,7 @@ export default function ReportsPage() {
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6 }}
               labelStyle={{ color: 'var(--text-muted)', fontSize: 11 }}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              formatter={(v: any) => [formatCurrency(typeof v === 'number' ? v : 0), 'P&L cumulé']}
+              formatter={(v: any) => [fmt(typeof v === 'number' ? v : 0), 'P&L cumulé']}
             />
             <Line
               type="monotone"
@@ -103,7 +104,7 @@ export default function ReportsPage() {
                 contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6 }}
                 labelStyle={{ color: 'var(--text-muted)', fontSize: 11 }}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(v: any) => [formatCurrency(typeof v === 'number' ? v : 0), 'Net P&L']}
+                formatter={(v: any) => [fmt(typeof v === 'number' ? v : 0), 'Net P&L']}
               />
               <Bar dataKey="pnl" radius={[3, 3, 0, 0]}>
                 {monthlyPnl.map((entry, i) => (
@@ -135,7 +136,7 @@ export default function ReportsPage() {
                     <td className="py-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>{s.trades}</td>
                     <td className="py-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>{(s.winRate * 100).toFixed(0)}%</td>
                     <td className="py-1.5 text-xs font-medium" style={{ color: s.netPnl >= 0 ? '#22c55e' : '#ef4444' }}>
-                      {formatCurrency(s.netPnl)}
+                      {fmt(s.netPnl)}
                     </td>
                   </tr>
                 ))}
@@ -163,7 +164,7 @@ export default function ReportsPage() {
                     <td className="py-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>{e.count}</td>
                     <td className="py-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>{(e.winRate * 100).toFixed(0)}%</td>
                     <td className="py-1.5 text-xs font-medium" style={{ color: e.netPnl >= 0 ? '#22c55e' : '#ef4444' }}>
-                      {formatCurrency(e.netPnl)}
+                      {fmt(e.netPnl)}
                     </td>
                   </tr>
                 ))}

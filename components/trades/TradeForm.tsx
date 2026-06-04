@@ -11,7 +11,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { calcGrossPnl, calcNetPnl, calcRMultiple } from '@/lib/calculations'
-import { formatCurrency, pnlColor, cn } from '@/lib/utils'
+import { pnlColor, cn } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 import { useAccounts } from '@/components/layout/AccountsProvider'
 import type { Trade, Emotion, AssetClass } from '@/types'
 
@@ -60,6 +61,7 @@ interface TradeFormProps {
 }
 
 export function TradeForm({ open, onClose, trade, onSaved }: TradeFormProps) {
+  const fmt = useFmt()
   const accounts = useAccounts()
   const isEdit = !!trade
   const [rating, setRating] = useState(0)
@@ -304,12 +306,12 @@ export function TradeForm({ open, onClose, trade, onSaved }: TradeFormProps) {
               <p className={sectionTitle} style={labelStyle}>Résultats</p>
               <div className="flex justify-between text-sm">
                 <span style={labelStyle}>Gross P&L</span>
-                <span className={pnlColor(grossPnl)} style={{ fontWeight: 600 }}>{formatCurrency(grossPnl)}</span>
+                <span className={pnlColor(grossPnl)} style={{ fontWeight: 600 }}>{fmt(grossPnl)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm" style={labelStyle}>Net P&L</span>
                 <span className={cn('text-base font-bold', pnlColor(netPnl ?? 0))}>
-                  {formatCurrency(netPnl ?? 0)}
+                  {fmt(netPnl ?? 0)}
                 </span>
               </div>
             </div>

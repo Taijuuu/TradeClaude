@@ -3,9 +3,11 @@ import { useMemo } from 'react'
 import { useFiltersStore } from '@/store/filtersStore'
 import { useTrades } from '@/hooks/useTrades'
 import { groupTradesByDay, calcWinRate } from '@/lib/calculations'
-import { formatCurrency, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import { useFmt } from '@/hooks/useFmt'
 
 export default function DailyStatsPage() {
+  const fmt = useFmt()
   const { dateFrom, dateTo, accountIds } = useFiltersStore()
   const accountId = accountIds[0]
 
@@ -87,25 +89,25 @@ export default function DailyStatsPage() {
                     color: day.grossPnl >= 0 ? '#22c55e' : '#ef4444',
                     fontWeight: 500,
                   }}>
-                    {formatCurrency(day.grossPnl)}
+                    {fmt(day.grossPnl)}
                   </td>
                   <td className={td} style={{
                     color: day.netPnl >= 0 ? '#22c55e' : '#ef4444',
                     fontWeight: 700,
                   }}>
-                    {formatCurrency(day.netPnl)}
+                    {fmt(day.netPnl)}
                   </td>
                   <td className={td} style={{ color: 'var(--text-muted)' }}>
-                    {formatCurrency(day.commission)}
+                    {fmt(day.commission)}
                   </td>
                   <td className={td} style={{ color: 'var(--text-muted)' }}>
                     {Math.round(day.winRate * 100)}%
                   </td>
                   <td className={td} style={{ color: '#22c55e' }}>
-                    {day.bestTrade ? formatCurrency(day.bestTrade.net_pnl!) : '—'}
+                    {day.bestTrade ? fmt(day.bestTrade.net_pnl!) : '—'}
                   </td>
                   <td className={td} style={{ color: '#ef4444' }}>
-                    {day.worstTrade ? formatCurrency(day.worstTrade.net_pnl!) : '—'}
+                    {day.worstTrade ? fmt(day.worstTrade.net_pnl!) : '—'}
                   </td>
                   <td className={td} style={{
                     color: day.avgR >= 0 ? '#22c55e' : '#ef4444',
