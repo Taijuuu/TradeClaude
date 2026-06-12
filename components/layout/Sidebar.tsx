@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Logo, LogoMark } from '@/components/Logo'
 
 const NAV_ITEMS = [
   { href: '/dashboard',    icon: BarChart2,     label: 'Dashboard' },
@@ -65,15 +66,11 @@ export function Sidebar({ userEmail, onAddTrade }: SidebarProps) {
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-3 h-14 border-b" style={{ borderColor: 'var(--border)' }}>
-          {!collapsed && (
-            <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-              📊 TJ
-            </span>
-          )}
+        <div className={cn('flex items-center justify-between h-14 border-b', collapsed ? 'px-2' : 'p-3')} style={{ borderColor: 'var(--border)' }}>
+          {collapsed ? <LogoMark size={20} /> : <Logo />}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded hover:bg-[var(--bg-hover)] ml-auto"
+            className="p-1 rounded hover:bg-[var(--bg-hover)] ml-auto shrink-0"
             style={{ color: 'var(--text-muted)' }}
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}

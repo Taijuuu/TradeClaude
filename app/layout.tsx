@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Trading Journal',
-  description: 'Personal trading journal',
+  title: 'TradeClaude — Journal de Trading',
+  description: 'Journal de trading connecté à MetaTrader : trades, stats et graphiques synchronisés automatiquement.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
