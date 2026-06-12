@@ -48,7 +48,7 @@ export function Sidebar({ userEmail, onAddTrade }: SidebarProps) {
     if (onAddTrade) {
       onAddTrade()
     } else {
-      router.push('/trades')
+      router.push('/trades?add=1')
     }
   }
 

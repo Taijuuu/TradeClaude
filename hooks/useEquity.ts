@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useDataStore } from '@/store/dataStore'
 import type { EquityPoint } from '@/types'
 
 interface Filters {
@@ -11,6 +12,7 @@ interface Filters {
 export function useEquity(filters: Filters = {}) {
   const [data, setData] = useState<EquityPoint[]>([])
   const [loading, setLoading] = useState(true)
+  const dataVersion = useDataStore(s => s.dataVersion)
 
   useEffect(() => {
     setLoading(true)
@@ -24,7 +26,7 @@ export function useEquity(filters: Filters = {}) {
       .then(d => setData(d.data ?? []))
       .catch(() => setData([]))
       .finally(() => setLoading(false))
-  }, [filters.dateFrom, filters.dateTo, filters.accountId])
+  }, [filters.dateFrom, filters.dateTo, filters.accountId, dataVersion])
 
   return { data, loading }
 }

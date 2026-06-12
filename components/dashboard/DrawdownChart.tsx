@@ -60,14 +60,16 @@ export function DrawdownChart({ data, initialBalance }: DrawdownChartProps) {
                 <stop offset="95%" stopColor="#ef4444" stopOpacity={0.05} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d3148" />
-            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+            <XAxis dataKey="dateLabel" stroke="#94a3b8" tick={{ fontSize: 10 }} interval="preserveStartEnd" axisLine={false} tickLine={false} />
             <YAxis
               stroke="#94a3b8"
               tick={{ fontSize: 10 }}
-              tickFormatter={v => `${v}`}
-              width={50}
+              tickFormatter={fmt.axis}
+              width={52}
               domain={[isEmpty ? -100 : 'auto', 0]}
+              axisLine={false}
+              tickLine={false}
             />
             <Tooltip
               contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }}

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { useDataStore } from '@/store/dataStore'
 import type { CalendarResponse } from '@/types'
 
 interface UseCalendarResult {
@@ -14,6 +15,7 @@ export function useCalendar(year: number, month: number, accountId?: string): Us
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const dataVersion = useDataStore(s => s.dataVersion)
 
   const refresh = useCallback(() => setTick(t => t + 1), [])
 
@@ -27,7 +29,7 @@ export function useCalendar(year: number, month: number, accountId?: string): Us
       .then(d => { setData(d); setError(null) })
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
-  }, [year, month, accountId, tick])
+  }, [year, month, accountId, tick, dataVersion])
 
   return { data, loading, error, refresh }
 }

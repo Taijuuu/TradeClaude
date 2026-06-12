@@ -14,6 +14,7 @@ import { calcGrossPnl, calcNetPnl, calcRMultiple } from '@/lib/calculations'
 import { pnlColor, cn } from '@/lib/utils'
 import { useFmt } from '@/hooks/useFmt'
 import { useAccounts } from '@/components/layout/AccountsProvider'
+import { useDataStore } from '@/store/dataStore'
 import type { Trade, Emotion, AssetClass } from '@/types'
 
 const EMOTIONS: { value: Emotion; label: string; emoji: string }[] = [
@@ -132,6 +133,7 @@ export function TradeForm({ open, onClose, trade, onSaved }: TradeFormProps) {
     }
 
     toast.success(isEdit ? 'Trade mis à jour !' : 'Trade ajouté !')
+    useDataStore.getState().bumpData()
     onSaved()
     onClose()
   }

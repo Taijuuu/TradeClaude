@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useDataStore } from '@/store/dataStore'
 
 export interface ScatterPoint {
   timeMinutes: number
@@ -16,6 +17,7 @@ interface Filters {
 export function useScatter(filters: Filters = {}) {
   const [points, setPoints] = useState<ScatterPoint[]>([])
   const [loading, setLoading] = useState(true)
+  const dataVersion = useDataStore(s => s.dataVersion)
 
   useEffect(() => {
     setLoading(true)
@@ -29,7 +31,7 @@ export function useScatter(filters: Filters = {}) {
       .then(d => setPoints(d.points ?? []))
       .catch(() => setPoints([]))
       .finally(() => setLoading(false))
-  }, [filters.dateFrom, filters.dateTo, filters.accountId])
+  }, [filters.dateFrom, filters.dateTo, filters.accountId, dataVersion])
 
   return { points, loading }
 }

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useFmt } from '@/hooks/useFmt'
+import { useDataStore } from '@/store/dataStore'
 
 interface DayData {
   date: string
@@ -30,6 +31,7 @@ export function ProgressHeatmap({ accountId }: ProgressHeatmapProps) {
   const [dayMap, setDayMap] = useState<Map<string, DayData>>(new Map())
   const [tooltip, setTooltip] = useState<{ day: DayData; x: number; y: number } | null>(null)
   const [loading, setLoading] = useState(true)
+  const dataVersion = useDataStore(s => s.dataVersion)
 
   useEffect(() => {
     setLoading(true)
@@ -44,7 +46,7 @@ export function ProgressHeatmap({ accountId }: ProgressHeatmapProps) {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [accountId])
+  }, [accountId, dataVersion])
 
   // Build 52-week grid ending today
   const today = new Date()

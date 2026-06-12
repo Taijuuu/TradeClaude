@@ -22,10 +22,14 @@ export default function DashboardPage() {
   const accountId = accountIds[0]
 
   const accounts = useAccounts()
-  const { stats } = useStats({ dateFrom, dateTo, accountId })
+  const { stats, loading: statsLoading } = useStats({ dateFrom, dateTo, accountId })
   const { trades } = useTrades({ dateFrom, dateTo, accountId }, 15)
-  const { data: equityData } = useEquity({ dateFrom, dateTo, accountId })
+  const { data: equityData, loading: equityLoading } = useEquity({ dateFrom, dateTo, accountId })
   const { points: scatterPoints } = useScatter({ dateFrom, dateTo, accountId })
+
+  // Pulse subtil pendant les re-fetch (changement de filtre, sync MT5, ajout de trade)
+  const pulse = (loading: boolean) =>
+    loading ? 'opacity-60 transition-opacity duration-300' : 'transition-opacity duration-300'
 
   const initialBalance = accounts.find(a => a.id === accountId)?.balance ?? accounts[0]?.balance ?? 0
 
@@ -48,7 +52,7 @@ export default function DashboardPage() {
     <main className="flex-1 overflow-auto p-5 flex flex-col gap-4">
 
       {/* ── TOP: 5 stat cards ── */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className={`grid grid-cols-5 gap-3 ${pulse(statsLoading)}`}>
 
         {/* Net P&L */}
         <div className="rounded-lg p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -122,7 +126,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── ROW 2: Progress Heatmap + Cumulative P&L ── */}
-      <div className="flex gap-4">
+      <div className={`flex gap-4 ${pulse(equityLoading)}`}>
         <div className="flex-1 min-w-0">
           <ProgressHeatmap accountId={accountId} />
         </div>
@@ -132,7 +136,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── ROW 3: Daily P&L bars + Account Balance ── */}
-      <div className="flex gap-4">
+      <div className={`flex gap-4 ${pulse(equityLoading)}`}>
         <div className="flex-1 min-w-0">
           <DailyBarChart data={equityData} />
         </div>

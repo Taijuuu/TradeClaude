@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useFiltersStore } from '@/store/filtersStore'
+import { useDataStore } from '@/store/dataStore'
 import { useTrades } from '@/hooks/useTrades'
 import { TradeTable } from '@/components/trades/TradeTable'
 import { TradeForm } from '@/components/trades/TradeForm'
@@ -45,6 +47,15 @@ export default function TradesPage() {
   const [syncing, setSyncing] = useState(false)
   const { lastSyncAt, reload: reloadStatus } = useLastSync()
 
+  // Ouvre le formulaire quand on arrive via "Add Trade" de la sidebar (/trades?add=1)
+  const router = useRouter()
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('add') === '1') {
+      setFormOpen(true)
+      router.replace('/trades')
+    }
+  }, [router])
+
   function handleEdit(trade: Trade) {
     setEditingTrade(trade)
     setFormOpen(true)
@@ -69,6 +80,7 @@ export default function TradesPage() {
             ? 'Aucun nouveau trade'
             : `${data.inserted} importé${data.inserted !== 1 ? 's' : ''}, ${data.updated} mis à jour`
         )
+        useDataStore.getState().bumpData()
         refresh()
         reloadStatus()
       }

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn, formatR, formatDate } from '@/lib/utils'
 import { useFmt } from '@/hooks/useFmt'
+import { useDataStore } from '@/store/dataStore'
 import type { Trade } from '@/types'
 
 interface TradeTableProps {
@@ -26,6 +27,7 @@ export function TradeTable({ trades, loading, onEdit, onDeleted }: TradeTablePro
     setDeleting(null)
     if (!res.ok) { toast.error('Erreur lors de la suppression'); return }
     toast.success('Trade supprimé')
+    useDataStore.getState().bumpData()
     onDeleted()
   }
 

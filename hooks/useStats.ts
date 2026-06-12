@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { useDataStore } from '@/store/dataStore'
 import type { StatsResponse } from '@/types'
 
 interface Filters {
@@ -21,6 +22,7 @@ export function useStats(filters: Filters = {}): UseStatsResult {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const dataVersion = useDataStore(s => s.dataVersion)
 
   const refresh = useCallback(() => setTick(t => t + 1), [])
 
@@ -37,7 +39,7 @@ export function useStats(filters: Filters = {}): UseStatsResult {
       .then(d => { setStats(d); setError(null) })
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
-  }, [filtersKey, tick])
+  }, [filtersKey, tick, dataVersion])
 
   return { stats, loading, error, refresh }
 }

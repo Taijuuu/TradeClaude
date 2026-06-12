@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import { useDataStore } from '@/store/dataStore'
 import type { Trade } from '@/types'
 
 interface Filters {
@@ -34,6 +35,7 @@ export function useTrades(filters: Filters = {}, limit = 50): UseTradesResult {
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [tick, setTick] = useState(0)
+  const dataVersion = useDataStore(s => s.dataVersion)
 
   const refresh = useCallback(() => setTick(t => t + 1), [])
 
@@ -52,7 +54,7 @@ export function useTrades(filters: Filters = {}, limit = 50): UseTradesResult {
       .then(d => { setTrades(d.trades ?? []); setTotal(d.total ?? 0); setError(null) })
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
-  }, [page, limit, filtersKey, tick])
+  }, [page, limit, filtersKey, tick, dataVersion])
 
   return { trades, total, loading, error, page, setPage, refresh }
 }

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const startTime = new Date(Date.now() - 2 * 365 * 24 * 3600 * 1000).toISOString()
 
     const deals  = await fetchDeals(startTime, endTime)
-    const trades = groupDealsToTrades(deals)
+    const { trades } = groupDealsToTrades(deals)
 
     if (trades.length === 0) {
       return Response.json({ imported: 0, message: 'Aucun trade trouvé' })

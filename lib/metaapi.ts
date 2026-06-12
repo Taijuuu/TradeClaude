@@ -128,26 +128,77 @@ export async function fetchDeals(from: string, to: string): Promise<MetaApiDeal[
   throw new Error(lastError)
 }
 
-export function groupDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
-  const groups = new Map<string, { in?: MetaApiDeal; out?: MetaApiDeal }>()
+// Clôture d'une position dont le deal d'entrée est hors de la fenêtre de fetch
+// (position ouverte lors d'une sync précédente). La route de sync s'en sert
+// pour fermer le trade 'open' existant en base.
+export interface PositionClose {
+  mt5_position_id: string
+  exit_price: number
+  exit_date: string
+  gross_pnl: number
+  out_commission: number  // valeur absolue, à ajouter à la commission d'entrée
+  swap: number
+}
+
+export interface GroupedDeals {
+  trades: MappedTrade[]
+  closes: PositionClose[]
+}
+
+// Agrège les deals OUT d'une position (gère les clôtures partielles) :
+// prix de sortie pondéré par volume, profits/commissions/swaps sommés.
+function aggregateOuts(outs: MetaApiDeal[]) {
+  const volume = outs.reduce((s, d) => s + (d.volume ?? 0), 0)
+  const exitPrice = volume > 0
+    ? outs.reduce((s, d) => s + d.price * (d.volume ?? 0), 0) / volume
+    : outs[outs.length - 1].price
+  return {
+    volume,
+    exitPrice,
+    exitDate: outs.reduce((max, d) => d.time > max ? d.time : max, outs[0].time),
+    profit: outs.reduce((s, d) => s + (d.profit ?? 0), 0),
+    commission: outs.reduce((s, d) => s + (d.commission ?? 0), 0),
+    swap: outs.reduce((s, d) => s + (d.swap ?? 0), 0),
+  }
+}
+
+export function groupDealsToTrades(deals: MetaApiDeal[]): GroupedDeals {
+  const groups = new Map<string, { in?: MetaApiDeal; outs: MetaApiDeal[] }>()
 
   for (const deal of deals) {
-    const group = groups.get(deal.positionId) ?? {}
+    const group = groups.get(deal.positionId) ?? { outs: [] }
     if (deal.entryType === 'DEAL_ENTRY_IN') group.in = deal
-    else if (deal.entryType === 'DEAL_ENTRY_OUT') group.out = deal
+    // DEAL_ENTRY_INOUT (reversal) clôture la position courante : traité comme une sortie
+    else if (deal.entryType === 'DEAL_ENTRY_OUT' || deal.entryType === 'DEAL_ENTRY_INOUT') group.outs.push(deal)
     groups.set(deal.positionId, group)
   }
 
   const trades: MappedTrade[] = []
+  const closes: PositionClose[] = []
 
-  for (const [, { in: inDeal, out: outDeal }] of groups) {
-    if (!inDeal) continue
+  for (const [positionId, { in: inDeal, outs }] of groups) {
+    if (!inDeal) {
+      // Deal d'entrée hors fenêtre : la position a été ouverte avant cette sync.
+      if (outs.length === 0) continue
+      const agg = aggregateOuts(outs)
+      closes.push({
+        mt5_position_id: positionId,
+        exit_price: agg.exitPrice,
+        exit_date: agg.exitDate,
+        gross_pnl: agg.profit,
+        out_commission: Math.abs(agg.commission),
+        swap: agg.swap,
+      })
+      continue
+    }
 
-    const isClosed = !!outDeal
-    const totalCommission = Math.abs((inDeal.commission ?? 0) + (outDeal?.commission ?? 0))
-    const grossPnl = isClosed ? (outDeal!.profit ?? 0) : null
+    const agg = outs.length > 0 ? aggregateOuts(outs) : null
+    // Fermé seulement si tout le volume d'entrée est sorti (tolérance flottants)
+    const isClosed = agg != null && agg.volume >= inDeal.volume - 1e-9
+    const totalCommission = Math.abs((inDeal.commission ?? 0) + (agg?.commission ?? 0))
+    const grossPnl = isClosed ? agg!.profit : null
     const netPnl = grossPnl != null
-      ? grossPnl + (inDeal.commission ?? 0) + (outDeal!.commission ?? 0) + (outDeal!.swap ?? 0)
+      ? grossPnl + (inDeal.commission ?? 0) + agg!.commission + agg!.swap
       : null
 
     trades.push({
@@ -160,12 +211,12 @@ export function groupDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
       quantity: inDeal.volume,
       commission: totalCommission,
       status: isClosed ? 'closed' : 'open',
-      exit_price: isClosed ? outDeal!.price : null,
-      exit_date: isClosed ? outDeal!.time : null,
+      exit_price: isClosed ? agg!.exitPrice : null,
+      exit_date: isClosed ? agg!.exitDate : null,
       gross_pnl: grossPnl,
       net_pnl: netPnl,
     })
   }
 
-  return trades
+  return { trades, closes }
 }
